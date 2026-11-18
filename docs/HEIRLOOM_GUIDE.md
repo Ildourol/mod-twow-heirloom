@@ -95,11 +95,15 @@ Armor types strictly preserve standard WoW invariants: Plate is Plate (wearable 
 
 ## 4. Current vendor SQL
 
-`data/sql/world/0003_heirloom_vendor_npc.sql` establishes capital curators:
-- **Stormwind Bank (Alliance)**: `Kaelen Dawnbrow` (`entry 2000201`, `guid 3000201`)
-- **Orgrimmar Bank (Horde)**: `Krag'jin` (`entry 2000204`, `guid 3000204`)
+`data/sql/world/0003_heirloom_vendor_npc.sql` establishes capital dual curators:
+- **Stormwind Bank (Alliance)**:
+  - Armor Curator: `Kaelen Dawnbrow` (`entry 2000201`, `guid 3000201`, 111 armor & jewelry pieces)
+  - Weapon Master: `Branden Stormforged` (`entry 2000221`, `guid 3000221`, 51 weapons & shields)
+- **Orgrimmar Outside Bank Entrance (Horde)**:
+  - Armor Curator: `Krag'jin` (`entry 2000204`, `guid 3000204`, 111 armor & jewelry pieces)
+  - Weapon Master: `Gorrok Warsong` (`entry 2000224`, `guid 3000224`, 51 weapons & shields)
 
-Each merchant provides all 162 heirloom pieces (111 armor & jewelry, 51 weapons & shields) directly to players. All other regional spawns are pruned to ensure a clean capital-centric setup.
+All other regional spawns are pruned to ensure a clean capital-centric setup.
 
 ## 5. Recognition, account binding and mail
 

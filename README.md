@@ -78,7 +78,7 @@ Configured XP slot percentages are bounded to 0–100 individually; invalid/nega
 4. **Database Migrations (Bundled & Standalone)**:
    - All 9,720 level 1-60 heirloom item templates, capital city curators, and bank spawns are bundled directly in `data/sql/world/`:
      - `0002_custom_heirloom_items.sql` (9,720 scaling item templates across 162 archetypes)
-     - `0003_heirloom_vendor_npc.sql` (Capital curators, all-in-one inventories, and Stormwind/Orgrimmar bank spawns)
+     - `0003_heirloom_vendor_npc.sql` (Capital dual curators: Armor Curator & Weapon Master in Stormwind Bank and outside Orgrimmar Bank)
    - **Automatic Standalone Import**: With `Heirloom.Database.AutoImport = 1` (default ON), the module automatically verifies the world database on server boot. If items or vendors are not yet present, it executes the migrations and reloads memory prototypes automatically without requiring manual SQL imports or server restarts.
    - **Manual Import (Optional)**: If preferred, server operators can manually import the three files above into `tw_world` using any MariaDB/MySQL client.
 5. Copy `conf/mod-twow-heirloom.conf.dist` to `Server/etc/modules/mod-twow-heirloom.conf` and adjust settings as desired.
