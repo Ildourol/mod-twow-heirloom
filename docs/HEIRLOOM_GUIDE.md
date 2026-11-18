@@ -91,7 +91,7 @@ For scaling, the per-stat formula is `R = clamp((L + 5) / (L0 + 5), 0.05, 15.0)`
 
 When enabled, the module checks player equipment on login, level changes, loot and a roughly one-second periodic audit. Level-specific conversion also checks backpack/bag contents. Conversion requires a corresponding target template. It does not manufacture an item when the required level entry is absent.
 
-For armor proficiency, Warriors/Paladins transition recognized Mail to Plate at level 40+, and Hunters/Shamans transition recognized Leather to Mail at level 40+. The implementation does not perform Plate-to-Mail downgrade for low-level Warriors/Paladins. Learning the appropriate skill is separately controlled by `Heirloom.AutoMorph.AutoLearnArmorSkill`. These features need on-server tests across leveling, relogging, moving items between bags, and re-equipping.
+Armor types strictly preserve standard WoW invariants: Plate is Plate (wearable at level 40+), Mail is Mail (wearable from level 1), Leather is Leather, and Cloth is Cloth. There is no armor morphing or cross-type conversion; gear behaves identically to standard authentic gear with native level scaling.
 
 ## 4. Current dual-vendor SQL
 

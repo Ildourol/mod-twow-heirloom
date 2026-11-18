@@ -91,26 +91,6 @@ Heirloom.BonusXP.RingPercent = 5.0
 Heirloom.Durability.Exempt = 1
 
 #
-# Heirloom.AutoMorph.Enable
-#     Description: Enables automatic armor adaptation upon reaching level 40.
-#                  Warriors & Paladins: Mail heirlooms adapt to Plate at level 40.
-#                  Hunters & Shamans: Leather heirlooms adapt to Mail at level 40.
-#     Default:     1 (Enabled)
-#                  0 (Disabled)
-#
-Heirloom.AutoMorph.Enable = 1
-
-#
-# Heirloom.AutoMorph.AutoLearnArmorSkill
-#     Description: Automatically teaches the character Plate Mail (Warriors/Paladins) or
-#                  Mail (Hunters/Shamans) skill upon level 40 heirloom adaptation so
-#                  the upgraded armor is immediately usable and re-equippable.
-#     Default:     1 (Enabled)
-#                  0 (Disabled)
-#
-Heirloom.AutoMorph.AutoLearnArmorSkill = 1
-
-#
 # Heirloom.ItemIds
 #     Description: Comma-separated list of explicit item IDs treated as heirlooms (in addition
 #                  to any items with Bonding = 6 / BIND_ACCOUNT).

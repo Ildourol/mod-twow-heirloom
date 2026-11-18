@@ -33,10 +33,6 @@ public:
     // Durability exemption toggle
     [[nodiscard]] bool IsDurabilityExemptEnabled() const { return m_durabilityExempt; }
 
-    // Level 40 Armor Auto-Morph
-    [[nodiscard]] bool IsAutoMorphEnabled() const { return m_autoMorphEnabled; }
-    [[nodiscard]] bool IsAutoLearnArmorSkillEnabled() const { return m_autoLearnArmorSkill; }
-
     // Standalone Database Auto-Import
     [[nodiscard]] bool IsAutoImportEnabled() const { return m_autoImport; }
     [[nodiscard]] std::string const& GetSqlPath() const { return m_sqlPath; }
@@ -69,8 +65,6 @@ private:
     float m_ringXPPercent{5.0f};
 
     bool m_durabilityExempt{true};
-    bool m_autoMorphEnabled{true};
-    bool m_autoLearnArmorSkill{true};
     bool m_autoImport{true};
     std::string m_sqlPath;
     bool m_announceEnabled{false};

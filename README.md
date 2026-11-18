@@ -62,8 +62,6 @@ Copy `conf/mod-twow-heirloom.conf.dist` into the module configuration location u
 | `Heirloom.BonusXP.RingPercent` | `5.0` | Each of two ring slots |
 | `Heirloom.BonusXP.TrinketPercent` | `0.0` | Each of two trinket slots |
 | `Heirloom.Durability.Exempt` | `1` | Repair audit |
-| `Heirloom.AutoMorph.Enable` | `1` | Level-40 armor transitions |
-| `Heirloom.AutoMorph.AutoLearnArmorSkill` | `1` | Teach eligible armor skill |
 | `Heirloom.ItemIds` | `"default"` | Built-in allowlist plus optional IDs |
 | `Heirloom.Announce.Enable` | `1` | Bonus-XP system messages |
 | `Heirloom.Debug.Enable` | `1` | Diagnostic logs |

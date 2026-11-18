@@ -52,7 +52,6 @@ void HeirloomMgr::HandlePlayerLogin(Player* player)
     sLog.outString("[mod-twow-heirloom] Player %s (Level %u) logged in; auditing heirloom scaling.",
         player->GetName(), player->GetLevel());
 
-    CheckAndApplyArmorMorph(player, 0, player->GetLevel());
     AdaptAllPlayerHeirlooms(player);
     RecalculatePlayerHeirlooms(player, true);
 }
@@ -79,7 +78,6 @@ void HeirloomMgr::HandlePlayerLevelChanged(Player* player, uint8 oldLevel)
     sLog.outString("[mod-twow-heirloom] Player %s level changed from %u to %u; recalculating heirlooms.",
         player->GetName(), oldLevel, player->GetLevel());
 
-    CheckAndApplyArmorMorph(player, oldLevel, player->GetLevel());
     AdaptAllPlayerHeirlooms(player);
     RecalculatePlayerHeirlooms(player, true);
 
@@ -162,7 +160,6 @@ void HeirloomMgr::HandlePlayerUpdate(Player* player, uint32 diff)
 
             if (guidsChanged || effectiveLvl != cache.lastKnownLevel)
             {
-                CheckAndApplyArmorMorph(player, cache.lastKnownLevel, effectiveLvl);
                 AdaptAllPlayerHeirlooms(player);
             }
 
@@ -765,243 +762,6 @@ void HeirloomMgr::RemoveAllDeltas(Player* player, HeirloomPlayerCache& cache)
         }
     }
     cache.Reset();
-}
-
-uint32 HeirloomMgr::GetMorphedItemId(uint32 entry, uint8 playerClass, bool toHighTier)
-{
-    // Plate classes: Warrior and Paladin
-    // Keep Plate as Plate for all levels (no Plate -> Mail down-morph).
-    // Mail does NOT morph into Plate at Level 40 (kept as Mail per specification).
-    if (playerClass == CLASS_WARRIOR || playerClass == CLASS_PALADIN)
-    {
-        return 0;
-    }
-    // Mail classes: Hunter and Shaman
-    else if (playerClass == CLASS_HUNTER || playerClass == CLASS_SHAMAN)
-    {
-        if (toHighTier) // Leather -> Mail (Level >= 40)
-        {
-            // 900000 series: Leather 904800-907199 -> Mail 902400-904799 (offset -2400)
-            if (entry >= 904800 && entry < 907200)
-                return entry - 2400;
-
-            // Mathematical 1-to-1 mapping for 991300 series (Leather) -> 991200 series (Mail)
-            if (entry >= 991300 && entry <= 991399)
-                return entry - 100;
-
-            switch (entry)
-            {
-                // Legacy entries
-                case 22008: return 22016; // Legacy Darkmantle Spaulders (Leather) -> Beastmaster's Mantle (Mail)
-                case 22009: return 22060; // Legacy Darkmantle Tunic (Leather) -> Beastmaster's Tunic (Mail)
-                case 22112: return 22101; // Legacy Moonheart Spaulders (Leather) -> Pauldrons of The Five Thunders (Mail)
-                case 22113: return 22102; // Legacy Moonheart Vest (Leather) -> Vest of The Five Thunders (Mail)
-                default: break;
-            }
-        }
-        else // Mail -> Leather (Level < 40)
-        {
-            // 900000 series: Mail 902400-904799 -> Leather 904800-907199 (offset +2400)
-            if (entry >= 902400 && entry < 904800)
-                return entry + 2400;
-
-            // Mathematical 1-to-1 mapping for 991200 series (Mail) -> 991300 series (Leather)
-            if (entry >= 991200 && entry <= 991299)
-                return entry + 100;
-
-            switch (entry)
-            {
-                // Legacy entries
-                case 22016: return 22008; // Legacy Beastmaster's Mantle (Mail) -> Darkmantle Spaulders (Leather)
-                case 22060: return 22009; // Legacy Beastmaster's Tunic (Mail) -> Darkmantle Tunic (Leather)
-                case 22101: return 22112; // Legacy Pauldrons of The Five Thunders (Mail) -> Moonheart Spaulders (Leather)
-                case 22102: return 22113; // Legacy Vest of The Five Thunders (Mail) -> Moonheart Vest (Leather)
-                default: break;
-            }
-        }
-    }
-
-    return 0;
-}
-
-void HeirloomMgr::CheckAndApplyArmorMorph(Player* player, uint8 oldLevel, uint8 newLevel)
-{
-    if (!player || !sHeirloomConfig.IsEnabled() || !sHeirloomConfig.IsAutoMorphEnabled())
-        return;
-
-    uint8 pClass = player->GetClass();
-    bool isPlateClass = (pClass == CLASS_WARRIOR || pClass == CLASS_PALADIN);
-    bool isMailClass = (pClass == CLASS_HUNTER || pClass == CLASS_SHAMAN);
-
-    if (!isPlateClass && !isMailClass)
-        return;
-
-    bool toHighTier = (newLevel >= 40);
-
-    // Auto-learn armor skill if configured
-    if (sHeirloomConfig.IsAutoLearnArmorSkillEnabled())
-    {
-        // Warriors and Paladins learn Plate Mail skill ONLY at Level >= 40
-        if (toHighTier && isPlateClass && !player->HasSpell(750))
-        {
-            player->LearnSpell(750, false);
-            sLog.outString("[mod-twow-heirloom] Player %s reached Level %u and learned Plate Mail skill (Spell 750).",
-                player->GetName(), newLevel);
-            ChatHandler(player->GetSession()).SendSysMessage("You have learned the Plate Mail skill!");
-        }
-        else if (toHighTier && isMailClass && !player->HasSpell(8737))
-        {
-            player->LearnSpell(8737, false);
-            sLog.outString("[mod-twow-heirloom] Player %s reached Level %u and learned Mail skill (Spell 8737).",
-                player->GetName(), newLevel);
-            ChatHandler(player->GetSession()).SendSysMessage("You have learned the Mail skill!");
-        }
-        else if (!toHighTier && isPlateClass)
-        {
-            // Below level 40: revoke any premature Plate Mail proficiency
-            if (player->HasSpell(750))
-            {
-                player->RemoveSpell(750, false, false);
-                sLog.outString("[mod-twow-heirloom] Player %s is Level %u (< 40); revoked Plate Mail spell 750.",
-                    player->GetName(), newLevel);
-            }
-            if (player->GetSkillValue(SKILL_PLATE_MAIL) > 0)
-            {
-                player->SetSkill(SKILL_PLATE_MAIL, 0, 0);
-                sLog.outString("[mod-twow-heirloom] Player %s is Level %u (< 40); reset Plate Mail skill 293 to 0.",
-                    player->GetName(), newLevel);
-            }
-        }
-    }
-
-    // Unequip plate armor if under 40 without proficiency
-    if (!toHighTier && player->GetSkillValue(SKILL_PLATE_MAIL) == 0)
-    {
-        for (uint8 slot = 0; slot < HEIRLOOM_EQUIPMENT_SLOTS_COUNT; ++slot)
-        {
-            Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-            if (item && item->GetProto() && item->GetProto()->Class == ITEM_CLASS_ARMOR &&
-                item->GetProto()->SubClass == ITEM_SUBCLASS_ARMOR_PLATE)
-            {
-                sLog.outString("[mod-twow-heirloom] Player %s (Level %u) cannot equip Plate armor without Plate Mail skill; unequipping item %u from slot %u.",
-                    player->GetName(), newLevel, item->GetEntry(), slot);
-                player->AutoUnequipItemFromSlot(slot, true);
-            }
-        }
-    }
-
-    // 1. Check all 8 equipped armor slots (Head, Shoulders, Chest, Wrists, Hands, Waist, Legs, Feet)
-    for (uint8 slot : {
-        static_cast<uint8>(EQUIPMENT_SLOT_HEAD),
-        static_cast<uint8>(EQUIPMENT_SLOT_SHOULDERS),
-        static_cast<uint8>(EQUIPMENT_SLOT_CHEST),
-        static_cast<uint8>(EQUIPMENT_SLOT_WRISTS),
-        static_cast<uint8>(EQUIPMENT_SLOT_HANDS),
-        static_cast<uint8>(EQUIPMENT_SLOT_WAIST),
-        static_cast<uint8>(EQUIPMENT_SLOT_LEGS),
-        static_cast<uint8>(EQUIPMENT_SLOT_FEET)
-    })
-    {
-        Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-        if (!item)
-            continue;
-
-        uint32 oldEntry = item->GetEntry();
-        uint32 newEntry = GetMorphedItemId(oldEntry, pClass, toHighTier);
-        if (newEntry == 0 || newEntry == oldEntry)
-            continue;
-
-        ItemPrototype const* newProto = sObjectMgr.GetItemPrototype(newEntry);
-        if (!newProto)
-            continue;
-
-        if (sHeirloomConfig.IsDebugEnabled())
-        {
-            sLog.outString("[mod-twow-heirloom] Auto-morphing equipped item %u to %u for player %s (slot %u, level %u)",
-                oldEntry, newEntry, player->GetName(), slot, newLevel);
-        }
-
-        // Unapply existing deltas if applied
-        {
-            std::lock_guard<std::recursive_mutex> lock(m_mutex);
-            auto it = m_playerCaches.find(player->GetObjectGuid());
-            if (it != m_playerCaches.end() && it->second.slots[slot].active)
-            {
-                ApplySlotDelta(player, it->second.slots[slot], slot, false);
-                it->second.slots[slot] = HeirloomSlotDelta();
-            }
-        }
-
-        uint16 pos = (static_cast<uint16>(INVENTORY_SLOT_BAG_0) << 8) | static_cast<uint16>(slot);
-        player->RemoveItem(INVENTORY_SLOT_BAG_0, slot, true);
-        item->ChangeEntry(newProto);
-        player->EquipItem(pos, item, true);
-
-        if (player->GetSession())
-        {
-            sWorld.SendUpdateSingleItem(newEntry, player->GetSession());
-            item->SendCreateUpdateToPlayer(player);
-            player->SendNewItem(item, item->GetCount(), false, false, false, false);
-        }
-
-        player->UpdateArmor();
-        player->UpdateAllStats();
-
-        if (sHeirloomConfig.IsAnnounceEnabled())
-        {
-            ChatHandler(player->GetSession()).PSendSysMessage("Your heirloom has adapted to your level: [%s]!", newProto->Name1);
-        }
-    }
-
-    // 2. Check items in backpack and bags
-    auto morphBagItem = [&](uint8 bag, uint8 slot, Item* item)
-    {
-        if (!item)
-            return;
-
-        uint32 oldEntry = item->GetEntry();
-        uint32 newEntry = GetMorphedItemId(oldEntry, pClass, toHighTier);
-        if (newEntry == 0 || newEntry == oldEntry)
-            return;
-
-        ItemPrototype const* newProto = sObjectMgr.GetItemPrototype(newEntry);
-        if (!newProto)
-            return;
-
-        if (sHeirloomConfig.IsDebugEnabled())
-        {
-            sLog.outString("[mod-twow-heirloom] Auto-morphing bagged item %u to %u for player %s (bag %u, slot %u, level %u)",
-                oldEntry, newEntry, player->GetName(), bag, slot, newLevel);
-        }
-
-        item->ChangeEntry(newProto);
-
-        if (player->GetSession())
-        {
-            sWorld.SendUpdateSingleItem(newEntry, player->GetSession());
-            item->SendCreateUpdateToPlayer(player);
-            player->SendNewItem(item, item->GetCount(), false, false, false, false);
-        }
-
-        if (sHeirloomConfig.IsAnnounceEnabled())
-        {
-            ChatHandler(player->GetSession()).PSendSysMessage("Your bagged heirloom has adapted: [%s]!", newProto->Name1);
-        }
-    };
-
-    // Backpack
-    for (int i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; ++i)
-        morphBagItem(INVENTORY_SLOT_BAG_0, i, player->GetItemByPos(INVENTORY_SLOT_BAG_0, i));
-
-    // Bag containers
-    for (int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
-    {
-        if (Bag* pBag = (Bag*)player->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
-        {
-            for (uint32 j = 0; j < pBag->GetBagSize(); ++j)
-                morphBagItem(i, j, player->GetItemByPos(i, j));
-        }
-    }
 }
 
 uint32 HeirloomMgr::GetScaledHeirloomEntry(uint32 currentEntry, uint8 targetLevel)
