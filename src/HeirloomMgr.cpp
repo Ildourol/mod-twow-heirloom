@@ -771,30 +771,9 @@ uint32 HeirloomMgr::GetMorphedItemId(uint32 entry, uint8 playerClass, bool toHig
 {
     // Plate classes: Warrior and Paladin
     // Keep Plate as Plate for all levels (no Plate -> Mail down-morph).
+    // Mail does NOT morph into Plate at Level 40 (kept as Mail per specification).
     if (playerClass == CLASS_WARRIOR || playerClass == CLASS_PALADIN)
     {
-        // When reaching Level >= 40 (toHighTier), if player possesses Mail heirlooms, adapt them to Plate:
-        if (toHighTier)
-        {
-            // 900000 series: Mail 902400-904799 -> Plate 900000-902399 (offset -2400)
-            if (entry >= 902400 && entry < 904800)
-                return entry - 2400;
-
-            if (entry >= 991200 && entry <= 991299)
-                return entry - 100;
-
-            switch (entry)
-            {
-                // Legacy entries
-                case 22016: return 22001; // Legacy Beastmaster's Mantle (Mail) -> Spaulders of Heroism (Plate)
-                case 22060: return 21997; // Legacy Beastmaster's Tunic (Mail) -> Breastplate of Heroism (Plate)
-                case 22101: return 22093; // Legacy Pauldrons of The Five Thunders (Mail) -> Soulforge Spaulders (Plate)
-                case 22102: return 22089; // Legacy Vest of The Five Thunders (Mail) -> Soulforge Breastplate (Plate)
-                default: break;
-            }
-        }
-
-        // Never down-morph Plate to Mail
         return 0;
     }
     // Mail classes: Hunter and Shaman
@@ -896,7 +875,7 @@ void HeirloomMgr::CheckAndApplyArmorMorph(Player* player, uint8 oldLevel, uint8 
     }
 
     // Unequip plate armor if under 40 without proficiency
-    if (!toHighTier && isPlateClass && player->GetSkillValue(SKILL_PLATE_MAIL) == 0)
+    if (!toHighTier && player->GetSkillValue(SKILL_PLATE_MAIL) == 0)
     {
         for (uint8 slot = 0; slot < HEIRLOOM_EQUIPMENT_SLOTS_COUNT; ++slot)
         {
