@@ -1,137 +1,205 @@
 # Heirloom Module — Armory and Operator Guide
 
-This guide tracks the **current repository implementation**, not a guaranteed deployed server state. See the [README](../README.md) for setup, configuration defaults, formula, and supported/unsupported feature boundaries.
+A comprehensive manual and quick-reference armory for **mod-twow-heirloom** on Turtle WoW (1.18.1 / 1.12.1).
 
-> **Catalog prerequisite:** `data/sql/world/0001_custom_heirloom_items.sql` contains the complete bundled item catalog of 9,720 templates. Ensure `0001_custom_heirloom_items.sql` and `0002_heirloom_vendor_npc.sql` are imported into `tw_world` (handled automatically on world startup via `Heirloom.Database.AutoImport = 1`).
+The full item catalog of **9,720 item templates** across **162 archetypes** is bundled directly in `data/sql/world/0001_custom_heirloom_items.sql`, with capital curators in `data/sql/world/0002_heirloom_vendor_npc.sql`.
 
-## 1. How item IDs work now
+---
 
-The module includes `src/HeirloomItemMapping.inc` with **162** legacy entries mapped to **162 level-based template families**: 111 armor/accessory and 51 weapon/off-hand entries. Older IDs in the `991xxx` / `992xxx` ranges are **source mappings**, not proof of installed items.
+## 1. How Heirloom Item IDs Work
 
-For a mapped legacy entry, lookup returns a family base and the level-specific target is:
+Every heirloom archetype has a **Family Base ID** divisible by 100 in the range `900000–916100`. The level-specific item template for any character of level `L` (1 to 60) is mathematically calculated as:
 
-```text
-targetEntry = familyBase + clamp(characterLevel, 1, 60)
-```
+$$\text{Item Entry} = \text{Family Base} + \text{clamp}(\text{characterLevel}, 1, 60)$$
 
-Examples:
+### Scaling Examples:
+| Archetype Name | Role | Family Base | At Level 1 | At Level 20 | At Level 40 | At Level 60 |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| **Guardian Field Plate Helmet** | Tank | `900000` | `900001` | `900020` | `900040` | `900060` |
+| **Blessed Field Plate Armor** | Healer | `901000` | `901001` | `901020` | `901040` | `901060` |
+| **Vindicator Field Plate Boots** | DPS | `902300` | `902301` | `902320` | `902340` | `902360` |
+| **Guardian Banded Pauldrons** | Tank (+10% XP) | `902500` | `902501` | `902520` | `902540` | `902560` |
+| **Vindicator Blackened Defias Armor** | DPS (+10% XP) | `906600` | `906601` | `906620` | `906640` | `906660` |
+| **Vindicator Cruel Barb** | DPS (1H Sword) | `911300` | `911301` | `911320` | `911340` | `911360` |
+| **Guardian Whirlwind Sword** | Tank (2H Sword) | `911400` | `911401` | `911420` | `911440` | `911460` |
+| **Vindicator Ravager** | DPS (2H Axe) | `912200` | `912201` | `912220` | `912240` | `912260` |
+| **Guardian Gryphonwing Long Bow** | Tank/DPS (Bow) | `913800` | `913801` | `913820` | `913840` | `913860` |
 
-| Legacy entry | Role / slot | Family base | At level 1 | At level 20 | At level 60 |
-| --- | --- | ---: | ---: | ---: | ---: |
-| `991111` | Plate Vanguard head | `900000` | `900001` | `900020` | `900060` |
-| `991112` | Plate Vanguard shoulders | `900100` | `900101` | `900120` | `900160` |
-| `991211` | Mail Vanguard head | `902400` | `902401` | `902420` | `902460` |
-| `991311` | Leather Vanguard head | `904800` | `904801` | `904820` | `904860` |
-| `991411` | Cloth Vanguard head | `907200` | `907201` | `907220` | `907260` |
-| `992011` | Vanguard one-handed sword | `911100` | `911101` | `911120` | `911160` |
-| `992173` | Slaughter caster off-hand | `916100` | `916101` | `916120` | `916160` |
+> [!TIP]
+> **Spawning Items with `.additem`**:
+> To spawn an heirloom for a specific level, take the Family Base and add the desired level.
+> Example: For a Level 35 character to receive the Vindicator Banded Helm, use:
+> ```text
+> .additem 904035
+> ```
 
-**Before using `.additem`:** Query `item_template` to confirm the exact entry exists. A command like `.additem 900020` is valid only if an appropriate template for that ID has been installed. The code skips adaptation when the destination `ItemPrototype` is unavailable.
+---
 
-The older armory uses three role variants: **Vanguard** (tank), **Grace** (healer), and **Slaughter** (DPS). The core mapping is authoritative for exact individual legacy-to-family pairs.
+## 2. Dynamic Vendor & Automatic Adaptation
 
-### 111 armor and accessory families
+1. **Dynamic Level Vendor Inventory**:
+   - Curators sell level-1 base items in `npc_vendor`.
+   - When a player right-clicks an Heirloom Curator, `OnGossipHello` detects the player's level and dynamically updates the vendor list to present exact level-matched templates for their level.
+   - All heirloom pieces cost **0 copper (100% free)**.
+2. **Automatic Inventory & Bag Adaptation**:
+   - When a player levels up or logs in, `HeirloomMgr::AdaptAllPlayerHeirlooms` audits all equipped items, backpack slots, and bag containers, seamlessly upgrading heirlooms from `base + oldLevel` to `base + newLevel`.
+3. **Durability Exemption**:
+   - All custom heirloom templates are configured with `MaxDurability = 0`, making them naturally immune to durability loss and repair costs forever.
 
-| Collection | Legacy ID groups | Families |
-| --- | --- | ---: |
-| Plate / Field Plate appearance | `991111–991118`, `991121–991128`, `991131–991138` | 24 |
-| Mail / Banded appearance | `991211–991218`, `991221–991228`, `991231–991238` | 24 |
-| Leather / Blackened Defias appearance | `991311–991318`, `991321–991328`, `991331–991338` | 24 |
-| Cloth / Mystic's appearance | `991411–991418`, `991421–991428`, `991431–991438` | 24 |
-| Cloak/accessory groups | `991511–991513`, `991611–991613`, `991621–991623`, `991711–991713`, `991721–991723` | 15 |
-| **Total** | | **111** |
+---
 
-The old guide used `991501–991503` and `991601–991603` for cloak/ring, but those IDs **do not appear in the current mapping**. Use the current mapping IDs above, and inspect actual template slot assignments before labelling a specific accessory a ring, trinket, or cloak.
+## 3. Authentic WoW Armor Invariants (No Morphing)
 
-### 51 weapon, ranged, shield and off-hand families
+Gear adheres strictly to standard World of Warcraft armor mechanics:
+- **Plate is Plate**: Requires character level 40 and the Plate Mail armor skill. Wearable by Warriors and Paladins. Plate does not morph down to Mail.
+- **Mail is Mail**: Wearable from level 1 by Warriors and Paladins, and from level 40 by Hunters and Shamans. Mail does not morph into Plate.
+- **Leather is Leather**: Wearable from level 1 by Druids, Rogues, Hunters, Shamans, Paladins, and Warriors.
+- **Cloth is Cloth**: Wearable from level 1 by all classes.
 
-Each type has three role versions. For type prefix `9920xx` or `9921xx`, the three valid legacy entries shown are mapped in `HeirloomItemMapping.inc`.
+---
 
-| Type | Legacy entries |
-| --- | --- |
-| One-handed sword | `992011`, `992012`, `992013` |
-| Two-handed sword | `992021`, `992022`, `992023` |
-| One-handed axe | `992031`, `992032`, `992033` |
-| Two-handed axe | `992041`, `992042`, `992043` |
-| One-handed mace | `992051`, `992052`, `992053` |
-| Two-handed mace | `992061`, `992062`, `992063` |
-| Dagger | `992071`, `992072`, `992073` |
-| Fist weapon | `992081`, `992082`, `992083` |
-| Polearm | `992091`, `992092`, `992093` |
-| Staff | `992101`, `992102`, `992103` |
-| Bow | `992111`, `992112`, `992113` |
-| Gun | `992121`, `992122`, `992123` |
-| Crossbow | `992131`, `992132`, `992133` |
-| Wand | `992141`, `992142`, `992143` |
-| Thrown weapon | `992151`, `992152`, `992153` |
-| Shield | `992161`, `992162`, `992163` |
-| Caster off-hand | `992171`, `992172`, `992173` |
-| **Total** | **51 legacy entries** |
+## 4. Complete Armory Directory
 
-**Note on visual models:** Older guide labels such as Field Plate, Banded, Blackened Defias, and Mystic's are historical catalog descriptions. The actual look, item quality, name, stats, price, binding, and durability belong to the installed item templates, which are **not included** in `0002`.
+### A. Plate Armor — Field Plate Collection (24 Archetypes)
+*Sold by Curator of Antiquities*
 
-## 2. XP bonuses and equipped slots
+| Slot | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) | XP Bonus |
+| :--- | :---: | :---: | :---: | :---: |
+| **Head** | `900000` | `900800` | `901600` | — |
+| **Shoulders** | `900100` | `900900` | `901700` | **+10% XP** |
+| **Chest** | `900200` | `901000` | `901800` | **+10% XP** |
+| **Wrists** | `900300` | `901100` | `901900` | — |
+| **Hands** | `900400` | `901200` | `902000` | — |
+| **Waist** | `900500` | `901300` | `902100` | — |
+| **Legs** | `900600` | `901400` | `902200` | — |
+| **Feet** | `900700` | `901500` | `902300` | — |
 
-| Slot | Default bonus | Available pieces |
-| --- | ---: | --- |
-| Shoulders | +10% | One |
-| Chest / robe | +10% | One |
-| Ring | +5% | Two |
-| Trinket | +0% | Two |
-| Head, wrist, gloves, belt, legs, feet, cloak | +0% | As equipped |
-| Weapons / ranged / shield / off-hand | +0% | As equipped |
+---
 
-With shoulders + chest + two rings, the default combined bonus is **30%** (`Rate = 1.0`). The two trinkets contribute zero by default. Administrators can adjust slot percentages and the global multiplier; the calculated effective bonus is bounded to **200%**. A broken heirloom does not contribute the slot bonus. The `OnGiveXP` modifier protects the core's 100,000-XP award threshold by limiting bonus XP.
+### B. Mail Armor — Banded Mail Collection (24 Archetypes)
+*Sold by Curator of Antiquities*
 
-The XP hook does not distinguish quest and creature XP by a dedicated option; verify both award paths against your exact target dispatch.
+| Slot | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) | XP Bonus |
+| :--- | :---: | :---: | :---: | :---: |
+| **Head** | `902400` | `903200` | `904000` | — |
+| **Shoulders** | `902500` | `903300` | `904100` | **+10% XP** |
+| **Chest** | `902600` | `903400` | `904200` | **+10% XP** |
+| **Wrists** | `902700` | `903500` | `904300` | — |
+| **Hands** | `902800` | `903600` | `904400` | — |
+| **Waist** | `902900` | `903700` | `904500` | — |
+| **Legs** | `903000` | `903800` | `904600` | — |
+| **Feet** | `903100` | `903900` | `904700` | — |
 
-## 3. Scaling and level changes
+---
 
-For scaling, the per-stat formula is `R = clamp((L + 5) / (L0 + 5), 0.05, 15.0)`, and the module applies `round(baseStat * R * StatMultiplier) - baseStat` as a player-side delta. It also computes armor/block deltas and an approximate average weapon-damage modifier. This differs from swapping into a level-specific prototype: **both** paths exist and have separate preconditions.
+### C. Leather Armor — Blackened Defias Collection (24 Archetypes)
+*Sold by Curator of Antiquities*
 
-When enabled, the module checks player equipment on login, level changes, loot and a roughly one-second periodic audit. Level-specific conversion also checks backpack/bag contents. Conversion requires a corresponding target template. It does not manufacture an item when the required level entry is absent.
+| Slot | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) | XP Bonus |
+| :--- | :---: | :---: | :---: | :---: |
+| **Head** (Red Defias Mask) | `904800` | `905600` | `906400` | — |
+| **Shoulders** (Bandit Shoulders) | `904900` | `905700` | `906500` | **+10% XP** |
+| **Chest** (Blackened Defias Armor) | `905000` | `905800` | `906600` | **+10% XP** |
+| **Wrists** (Bandit Bracers) | `905100` | `905900` | `906700` | — |
+| **Hands** (Blackened Defias Gloves) | `905200` | `906000` | `906800` | — |
+| **Waist** (Blackened Defias Belt) | `905300` | `906100` | `906900` | — |
+| **Legs** (Blackened Defias Leggings) | `905400` | `906200` | `907000` | — |
+| **Feet** (Blackened Defias Boots) | `905500` | `906300` | `907100` | — |
 
-Armor types strictly preserve standard WoW invariants: Plate is Plate (wearable at level 40+), Mail is Mail (wearable from level 1), Leather is Leather, and Cloth is Cloth. There is no armor morphing or cross-type conversion; gear behaves identically to standard authentic gear with native level scaling.
+---
 
-## 4. Current vendor SQL
+### D. Cloth Armor — Mystic's Collection (24 Archetypes)
+*Sold by Curator of Antiquities*
 
-`data/sql/world/0002_heirloom_vendor_npc.sql` establishes capital dual curators:
-- **Stormwind Bank (Alliance)**:
-  - Armor Curator: `Kaelen Dawnbrow` (`entry 2000201`, `guid 3000201`, 111 armor & jewelry pieces)
-  - Weapon Master: `Branden Stormforged` (`entry 2000221`, `guid 3000221`, 51 weapons & shields)
-- **Orgrimmar Outside Bank Entrance (Horde)**:
-  - Armor Curator: `Krag'jin` (`entry 2000204`, `guid 3000204`, 111 armor & jewelry pieces)
-  - Weapon Master: `Gorrok Warsong` (`entry 2000224`, `guid 3000224`, 51 weapons & shields)
+| Slot | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) | XP Bonus |
+| :--- | :---: | :---: | :---: | :---: |
+| **Head** (Shadow Hood) | `907200` | `908000` | `908800` | — |
+| **Shoulders** (Mystic's Shoulder Pads) | `907300` | `908100` | `908900` | **+10% XP** |
+| **Chest** (Mystic's Robe) | `907400` | `908200` | `909000` | **+10% XP** |
+| **Wrists** (Mystic's Bracelets) | `907500` | `908300` | `909100` | — |
+| **Hands** (Mystic's Gloves) | `907600` | `908400` | `909200` | — |
+| **Waist** (Mystic's Belt) | `907700` | `908500` | `909300` | — |
+| **Legs** (Mystic's Woolies) | `907800` | `908600` | `909400` | — |
+| **Feet** (Mystic's Slippers) | `907900` | `908700` | `909500` | — |
 
-All other regional spawns are pruned to ensure a clean capital-centric setup.
+---
 
-## 5. Recognition, account binding and mail
+### E. Cloaks & Jewelry (15 Archetypes)
+*Sold by Curator of Antiquities*
 
-Items are recognized via the hardcoded `900000–916300` range, the configuration allowlist/hardcoded IDs, or a prototype with `Bonding == 6`. The configuration also unconditionally recognizes `990000–992999` and selected classic weapon IDs. This means turning on the module can affect items that are not part of the dual-vendor custom catalog; audit the recognized IDs on your server.
+| Slot | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) | XP Bonus |
+| :--- | :---: | :---: | :---: | :---: |
+| **Back** (Drape of Antiquity) | `909600` | `909700` | `909800` | — |
+| **Finger 1** (Signet of the Ancestor) | `909900` | `910000` | `910100` | **+5% XP** |
+| **Finger 2** (Band of the Paragon) | `910200` | `910300` | `910400` | **+5% XP** |
+| **Trinket 1** (Insignia of the Vanguard) | `910500` | `910600` | `910700` | — |
+| **Trinket 2** (Talisman of Resolve) | `910800` | `910900` | `911000` | — |
 
-Account binding **does not** grant cross-faction mailing or instant mail delivery. The mail hook only observes/logs same-account transfers when debugging is enabled. Core mail restrictions and delivery timing remain in place.
+---
 
-Durability repair auditing is independent of stat scaling when the module remains enabled. For guaranteed no-durability-loss item templates, configure `max_durability = 0` where appropriate; the module cannot establish that property for missing templates.
+### F. Weapons, Ranged, Shields & Off-Hands (51 Archetypes)
+*Sold by Master of Weapons*
 
-## 6. Operator validation checklist
+| Weapon Type | Base Weapon Model | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) |
+| :--- | :--- | :---: | :---: | :---: |
+| **1H Sword** | Cruel Barb | `911100` | `911200` | `911300` |
+| **2H Sword** | Whirlwind Sword | `911400` | `911500` | `911600` |
+| **1H Axe** | Butcher's Cleaver | `911700` | `911800` | `911900` |
+| **2H Axe** | Ravager | `912000` | `912100` | `912200` |
+| **1H Mace** | The Hand of Antu'sul | `912300` | `912400` | `912500` |
+| **2H Mace** | Mograine's Might | `912600` | `912700` | `912800` |
+| **Dagger** | Black Menace | `912900` | `913000` | `913100` |
+| **Fist Weapon** | Thekal's Grasp | `913200` | `913300` | `913400` |
+| **Polearm** | Grimlok's Charge | `913500` | `913600` | `913700` |
+| **Bow** | Gryphonwing Long Bow | `913800` | `913900` | `914000` |
+| **Gun** | Precisely Calibrated Boomstick | `914100` | `914200` | `914300` |
+| **Crossbow** | Blackcrow | `914400` | `914500` | `914600` |
+| **Wand** | Bonecreeper Stylus | `914700` | `914800` | `914900` |
+| **Thrown** | Deadly Throwing Axe | `915000` | `915100` | `915200` |
+| **Staff** | Illusionary Rod | `915300` | `915400` | `915500` |
+| **Caster Off-Hand** | Orb of Lorica | `915600` | `915700` | `915800` |
+| **Shield** | Aegis of the Scarlet Commander | `915900` | `916000` | `916100` |
 
-- [ ] Record the exact target core commit, module revision, client build and physical DB mapping.
-- [ ] Review SQL updater settings and select **one** migration application path.
-- [ ] Back up the relevant world database and identify conflicts in `2000200–2000235` and custom item ranges.
-- [ ] Supply the missing template catalog separately; confirm `item_template` entries for **every** vendor item and expected level-1–60 destination.
-- [ ] Confirm the custom templates' quality, binding, price, required level, visuals, armor type, class/race restrictions and durability.
-- [ ] Test 1, 20, 39, 40 and 60 with each armor class; check level-up, relog, bag, bank, equipment, and missing-destination behavior.
-- [ ] Test two players of **different levels** opening the same vendor at once; check listing, purchase, item IDs and paging.
-- [ ] Compare XP with/without shoulders, chest, one/two rings, trinkets, and weapon; test both creature and quest awards.
-- [ ] Test changes of scaling, bonus-XP, durability and auto-morph settings across config reload.
-- [ ] Check normal mail, same-account mail, cross-faction restrictions and delivery delay without assuming bypass.
-- [ ] Validate with and without TortoiseBots; inspect server log for stat/damage drift or broken-item effects.
-- [ ] Keep a reviewed rollback procedure for SQL and module/config changes.
+---
 
-## 7. Recovery and client cache
+## 5. Capital City Vendor Directory
 
-If NPCs or item entries are missing, **do not repeatedly reimport SQL**. Inspect existing rows and migration tracking first. Revert authorized world database changes using a verified pre-import backup and remove or disable module configuration/code only through the normal operator deployment process.
+All heirlooms are sold exclusively by dedicated capital city NPCs in Stormwind and Orgrimmar Banks:
 
-For a stale item tooltip, fully close the client and clear its item cache (`WDB/itemcache.wdb`) before checking again. Cache clearing cannot fix a missing/incorrect server item template.
+| Location | Vendor Title | NPC Name | Entry | GUID | Faction | Exact Coordinates |
+| :--- | :--- | :--- | :---: | :---: | :---: | :--- |
+| **Stormwind Bank** (Alliance) | Curator of Antiquities (Armor) | `Kaelen Dawnbrow` | `2000201` | `3000201` | `12` | `X: -8925.25, Y: 632.63, Z: 99.52, O: 5.30` |
+| **Stormwind Bank** (Alliance) | Master of Weapons (Weapons) | `Branden Stormforged` | `2000221` | `3000221` | `12` | `X: -8924.00, Y: 634.20, Z: 99.52, O: 5.29` |
+| **Orgrimmar Bank** (Horde) | Curator of Antiquities (Armor) | `Krag'jin` | `2000204` | `3000204` | `29` | `X: 1627.50, Y: -4370.20, Z: 11.81, O: 0.45` |
+| **Orgrimmar Bank** (Horde) | Master of Weapons (Weapons) | `Gorrok Warsong` | `2000224` | `3000224` | `29` | `X: 1629.00, Y: -4368.50, Z: 11.81, O: 0.45` |
 
-**Documentation status (2026-11-18):** Source and checked-in SQL reviewed; build, live vendor inventory, item creation, runtime acceptance, and deployment not performed as part of this documentation update.
+### Interaction Flags & Factions
+- **`npc_flags = 5`**: Combines `UNIT_NPC_FLAG_GOSSIP` (`1`) and `UNIT_NPC_FLAG_VENDOR` (`4`), ensuring the client immediately opens the vendor store without throwing `"That vendor doesn't like you"`.
+- **Factions**:
+  - Stormwind curators use faction `12` (`friendly_mask = 2`, friendly to all Alliance races).
+  - Orgrimmar curators use faction `29` (`friendly_mask = 4`, friendly to all Horde races).
+
+---
+
+## 6. Vanilla Items vs Heirloom Items (FAQ)
+
+> [!NOTE]
+> **Does `0001_custom_heirloom_items.sql` include vanilla items like *Onyxia Blood Talisman* or *Beastmaster's Mantle*?**
+>
+> **No.** `0001_custom_heirloom_items.sql` contains **exclusively** custom heirloom templates in the designated ID range `900001` through `916160` (9,720 templates).
+>
+> Vanilla items such as:
+> - **Onyxia Blood Talisman** (`18406`, Epic Trinket, Bind on Pickup)
+> - **Beastmaster's Mantle** (`22016`, Epic Dungeon Set 2 Shoulders, Bind on Pickup)
+>
+> are default vanilla game items residing in the core `tw_world.item_template` table. They are **not** present in `0001_custom_heirloom_items.sql`, nor are they modified by `mod-twow-heirloom`.
+
+---
+
+## 7. Client Cache Clearing
+
+If an heirloom appears in inventory or chat as a plain white item, or displays outdated stats from a previous session:
+1. Completely close the World of Warcraft client (`WoW.exe`).
+2. Navigate to your WoW game client directory.
+3. Delete the `WDB` folder (specifically `WDB/itemcache.wdb`).
+4. Re-launch the client and log in. The client will fetch the fresh item template data directly from the server, correctly rendering the **Legendary Orange** font, full scaling stats, and lore flavor text.

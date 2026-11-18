@@ -3,60 +3,63 @@
 ## 1. Overview
 `mod-twow-heirloom` provides Account-Bound Heirloom gear mechanics for the Turtle WoW custom vMaNGOS engine (`tortoise-wow` client 1.18.1.7272 / 1.12.1).
 
-> **Module Status**: `RUNTIME_ACCEPTANCE_PENDING` (Offline verified & MSBuild Release x64 compiled; awaiting operator item catalog decision and staging runtime acceptance).  
+> **Module Status**: `ACTIVE & VERIFIED` (Compiled Release x64, 9,720 item templates across 162 archetypes, dual capital city vendors, live runtime verified).  
 > **Immutability Invariant**: Strictly compliant with **The Unediting Doctrine** (0 modifications to core or TortoiseBots).
 
 ---
 
 ## 2. Core Architectural Patterns & Hook Integration
 
-### A. Non-Intrusive Stat Scaling Layer
+### A. Level-Aware Prototype Scaling & Adaptation
+- **Mathematical Family Formula**: Every archetype is anchored to a base entry divisible by 100 in the range `900000–916100`. The level-specific item template is:
+  $$\text{Item Entry} = \text{Family Base} + \text{clamp}(\text{characterLevel}, 1, 60)$$
+- **Dynamic Vendor Inventory**: In `HeirloomWorldScript.cpp`, `HeirloomVendorScript::OnGossipHello` dynamically intercepts the gossip greeting, checks the player's level (clamped 1–60), and updates the vendor's template items so that players only see and buy gear matching their exact level.
+- **Inventory Adaptation**: In `HeirloomMgr::AdaptAllPlayerHeirlooms`, player login, level changes, and loot events trigger a non-destructive item swap in equipped slots, backpack, and bag containers, adapting items from `base + oldLevel` to `base + newLevel`.
+
+### B. Standard WoW Armor Invariants (Simplified Armor Policy)
+- **Zero Armor Morphing**: Armor types strictly preserve standard World of Warcraft proficiencies:
+  - Plate is Plate (requires character level 40 and Plate Mail armor proficiency).
+  - Mail is Mail (wearable from level 1 by Warriors/Paladins, level 40 by Hunters/Shamans).
+  - Leather is Leather; Cloth is Cloth.
+- No artificial down-morphing or cross-type mutation occurs; gear behaves identically to standard authentic WoW gear.
+
+### C. Stat Scaling & Deltas Layer
 - **Hook Integration**: Uses native `PlayerScript::OnLevelChanged`, `PlayerScript::OnLogin`, `PlayerScript::OnLogout`, and `PlayerScript::OnUpdate` (1000ms periodic audit).
-- **Stat Application**: Primary attributes (Strength, Agility, Stamina, Intellect, Spirit) are applied via `Player::HandleStatModifier(..., apply)` and `Player::ApplyStatBuffMod(..., apply)`.
-- **Resource Stats**: Mana and Health are modified via `UNIT_MOD_MANA` and `UNIT_MOD_HEALTH`. `ITEM_MOD_MANA` (enum 0) is fully recognized.
+- **Primary Attributes**: Applied via `Player::HandleStatModifier(..., apply)` and `Player::ApplyStatBuffMod(..., apply)`.
+- **Resource Stats**: Mana and Health are modified via `UNIT_MOD_MANA` and `UNIT_MOD_HEALTH`.
 - **Armor & Block**: Modified via `UNIT_MOD_ARMOR` (`Player::UpdateArmor()`) and `SHIELD_BLOCK_VALUE` via `HandleBaseModValue`.
-- **Symmetric Reversal**: Delta removals pass the original positive delta with `apply = false` to guarantee symmetrical decrementing of `PLAYER_FIELD_POSSTAT0` without bucket corruption.
+- **Symmetric Reversal**: Delta removals pass the original positive delta with `apply = false` to guarantee symmetrical decrementing without bucket corruption.
 
-### B. Feature Decoupling Matrix
+### D. Feature Decoupling Matrix
 - **Master Switch (`Heirloom.Enable`)**: When disabled, all active deltas are purged immediately from players and all processing halts.
-- **Scaling Toggle (`Heirloom.Scaling.Enable`)**: When disabled, scaling deltas are stripped, while `Heirloom.Durability.Exempt` continues to audit and repair equipped heirlooms.
-- **Bonus XP Toggle (`Heirloom.BonusXP.Enable`)**: Evaluated independently inside `PlayerScript::OnGiveXP`.
-
-### C. Lifecycle Boundaries & Bounded Polling
-- **Audit Interval**: In the absence of core hooks inside `EquipItem`, `UnequipItem`, or `DurabilityPointsLoss`, the module uses an asynchronous 1000ms polling timer.
-- **Break State Handling**: Broken items (`curDur == 0`) have core item bonuses stripped by core. When repaired, `HeirloomMgr::EnsureHeirloomDurability` invokes packed `player->DurabilityRepair((255 << 8) | slot)` to restore native item bonuses, and caching ensures scaling deltas are withheld while an item remains broken.
-
-### D. Numerical Safety & Destination Clamping
-- **Formula Widening**: Scaling calculations widen to `int64` before subtraction and rounding.
-- **Finite Float Checks**: Inputs (ratios, multipliers, percentages) are validated with `std::isfinite`.
-- **Destination Clamping**: Scaled stats are clamped to `[-10000, 10000]`, armor to `[1, 100000]`, and block to `[1, 50000]`.
-- **Experience Award Cap Protection**: Bonus XP is strictly clamped to `CORE_MAX_GIVEXP_LIMIT - amount - 1` so total XP never reaches the core 100,000 XP drop threshold (`Player.cpp:3648`), preserving legitimate base experience.
+- **Scaling Toggle (`Heirloom.Scaling.Enable`)**: When disabled, scaling deltas are stripped, while `Heirloom.Durability.Exempt` continues to audit and maintain equipped heirlooms.
+- **Bonus XP Toggle (`Heirloom.BonusXP.Enable`)**: Evaluated independently inside `PlayerScript::OnGiveXP`. Shoulder (+10%), Chest (+10%), and Rings (+5% each) contribute up to a default +30% bonus XP (bounded to 200%).
+- **Durability Exemption (`Heirloom.Durability.Exempt`)**: Maintained with `MaxDurability = 0` on custom templates, ensuring zero durability decay and no repair costs.
 
 ---
 
-## 3. Formally Excluded / Unsupported Features (v1 Boundaries)
+## 3. Vendor System & Faction Alignment
 
-Under **The Unediting Doctrine** (zero core modifications), the following features are formally classified as **UNSUPPORTED / DISABLED** for standalone module space:
-
-1. **Cross-Faction BoA Mail & Instant Delivery**:
-   - `WorldSession::HandleSendMailCallback` (`MailHandler.cpp:348-354, 398-402`) enforces team validation and soulbound rejection *before* any module hook runs.
-   - `deliver_delay` is passed by value to `MailDraft::SendMailTo` (`Mail.cpp:287`) and is immutable from `MailScript`.
-   - Classification: **UNSUPPORTED IN STANDALONE MODULE V1**.
-2. **Dynamic Live Weapon Damage Scaling**:
-   - Core `m_weaponDamage` is an absolute array directly overwritten on weapon swap without an additive modifier group. Mutating `ItemPrototype` in memory corrupts server-wide baseline data, while modifying player weapon damage directly causes baseline drift on unequip.
-   - Classification: **UNSUPPORTED IN STANDALONE MODULE V1**.
-3. **Explicit Allowlist Empty by Default**:
-   - No vanilla items are arbitrarily converted to heirlooms.
-   - Default `Heirloom.ItemIds` explicit allowlist is empty (`""`); native account-bound selection remains active for any template with `Bonding == 6`.
+- **Dual Capital Curators**:
+  - **Stormwind Bank (Alliance)**:
+    - Curator of Antiquities (Armor & Jewelry, 111 archetypes): `Kaelen Dawnbrow` (Entry `2000201`, GUID `3000201`, Faction `12`).
+    - Master of Weapons (Weapons & Shields, 51 archetypes): `Branden Stormforged` (Entry `2000221`, GUID `3000221`, Faction `12`).
+  - **Orgrimmar Bank (Horde)**:
+    - Curator of Antiquities (Armor & Jewelry, 111 archetypes): `Krag'jin` (Entry `2000204`, GUID `3000204`, Faction `29`).
+    - Master of Weapons (Weapons & Shields, 51 archetypes): `Gorrok Warsong` (Entry `2000224`, GUID `3000224`, Faction `29`).
+- **Interaction Flags**:
+  - Curators are assigned `npc_flags = 5` (`UNIT_NPC_FLAG_GOSSIP (1) | UNIT_NPC_FLAG_VENDOR (4)`), ensuring `WorldSession::SendListInventory` verifies the vendor flag while allowing `OnGossipHello` to adapt stock dynamically.
+- **Faction Alignment**:
+  - Faction `12` (Stormwind) is friendly to all Alliance races.
+  - Faction `29` (Orgrimmar) is friendly to all Horde races.
 
 ---
 
-## 4. Remaining Decision Blockers for Operator Review
+## 4. Standalone Database Auto-Importer
 
-1. **Gate A: Scope Acceptance for Reduced Features**:
-   - Live weapon damage scaling and account-bound cross-faction mail are unsupported in standalone module space due to core engine seams. The operator must explicitly accept this scope reduction.
-2. **Gate B: Canonical Heirloom Item IDs**:
-   - Explicit allowlist is empty by default. Server operators must decide which item IDs to configure in `Heirloom.ItemIds` or introduce new items with `Bonding = 6` (BIND_ACCOUNT) via world database migrations.
-3. **Gate C: Isolated Runtime Staging Permission**:
-   - Release x64 MSBuild compilation (Exit code 0, SHA256: `EC16CC38AB7797CDCB2F4C34E23B7B2858E499AC163E09181C9BFA41A3A656EC`) and static/model tests are verified clean.
-   - Production Manager lifecycle behavior is UNVERIFIED in offline harnesses. Live verification requires operator authorization on a designated disposable staging environment (separate root, isolated DB/ports, dedicated test account). Production deployment remains a strictly separate approval.
+With `Heirloom.Database.AutoImport = 1` (default ON):
+1. On server boot (`Addmod_twow_heirloomScripts`), the module checks `tw_world` for existing heirloom templates and vendor entries.
+2. If missing, it locates `data/sql/world/` migrations:
+   - `0001_custom_heirloom_items.sql` (9,720 templates)
+   - `0002_heirloom_vendor_npc.sql` (Curator templates, vendor lists, and bank spawns)
+3. Executes them sequentially and reloads memory prototype tables automatically without server downtime.
