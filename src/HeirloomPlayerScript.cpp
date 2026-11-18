@@ -7,6 +7,7 @@
 #include "HeirloomMgr.h"
 #include "ScriptObjects.h"
 #include "Objects/Player.h"
+#include "Objects/Item.h"
 
 namespace
 {
@@ -36,6 +37,14 @@ namespace
         void OnGiveXP(Player* player, uint32& amount, Unit* victim) override
         {
             sHeirloomMgr.HandlePlayerGiveXP(player, amount, victim);
+        }
+
+        void OnLootItem(Player* player, Item* item, uint32 /*count*/, ObjectGuid /*lootGuid*/) override
+        {
+            if (player && item && sHeirloomMgr.IsHeirloomItem(item->GetProto()))
+            {
+                sHeirloomMgr.AdaptAllPlayerHeirlooms(player);
+            }
         }
 
         void OnUpdate(Player* player, uint32 diff) override

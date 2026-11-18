@@ -2290,6 +2290,3 @@ SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
 -- Dump completed on 2026-11-18 15:04:09
-
-UPDATE `creature_template` SET `script_name` = 'npc_heirloom_vendor', `npc_flags` = 129 WHERE `entry` BETWEEN 2000200 AND 2000235;
-
