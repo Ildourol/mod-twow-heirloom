@@ -122,16 +122,16 @@ As the character levels up, any heirloom equipped or stored in the character's b
 ### D. Cloth Armor — Mystic's Collection (8 Pieces × 3 Roles)
 *Visual Model: Classic Mystic's set & Shadow Hood*
 
-| Slot | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
+| Slot | Arcane (Spell Power) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
 | :--- | :--- | :--- | :--- |
-| **Head** | `907200` (*Guardian Shadow Hood*) | `908000` (*Blessed Shadow Hood*) | `908800` (*Vindicator Shadow Hood*) |
-| **Shoulders** (+10% XP) | `907300` (*Guardian Mystic's Shoulder Pads*) | `908100` (*Blessed Mystic's Shoulder Pads*) | `908900` (*Vindicator Mystic's Shoulder Pads*) |
-| **Chest** (+10% XP) | `907400` (*Guardian Mystic's Robe*) | `908200` (*Blessed Mystic's Robe*) | `909000` (*Vindicator Mystic's Robe*) |
-| **Wrists** | `907500` (*Guardian Mystic's Bracelets*) | `908300` (*Blessed Mystic's Bracelets*) | `909100` (*Vindicator Mystic's Bracelets*) |
-| **Hands** | `907600` (*Guardian Mystic's Gloves*) | `908400` (*Blessed Mystic's Gloves*) | `909200` (*Vindicator Mystic's Gloves*) |
-| **Waist** | `907700` (*Guardian Mystic's Belt*) | `908500` (*Blessed Mystic's Belt*) | `909300` (*Vindicator Mystic's Belt*) |
-| **Legs** | `907800` (*Guardian Mystic's Woolies*) | `908600` (*Blessed Mystic's Woolies*) | `909400` (*Vindicator Mystic's Woolies*) |
-| **Feet** | `907900` (*Guardian Mystic's Slippers*) | `908700` (*Blessed Mystic's Slippers*) | `909500` (*Vindicator Mystic's Slippers*) |
+| **Head** | `907200` (*Arcane Shadow Hood*) | `908000` (*Blessed Shadow Hood*) | `908800` (*Vindicator Shadow Hood*) |
+| **Shoulders** (+10% XP) | `907300` (*Arcane Mystic's Shoulder Pads*) | `908100` (*Blessed Mystic's Shoulder Pads*) | `908900` (*Vindicator Mystic's Shoulder Pads*) |
+| **Chest** (+10% XP) | `907400` (*Arcane Mystic's Robe*) | `908200` (*Blessed Mystic's Robe*) | `909000` (*Vindicator Mystic's Robe*) |
+| **Wrists** | `907500` (*Arcane Mystic's Bracelets*) | `908300` (*Blessed Mystic's Bracelets*) | `909100` (*Vindicator Mystic's Bracelets*) |
+| **Hands** | `907600` (*Arcane Mystic's Gloves*) | `908400` (*Blessed Mystic's Gloves*) | `909200` (*Vindicator Mystic's Gloves*) |
+| **Waist** | `907700` (*Arcane Mystic's Belt*) | `908500` (*Blessed Mystic's Belt*) | `909300` (*Vindicator Mystic's Belt*) |
+| **Legs** | `907800` (*Arcane Mystic's Woolies*) | `908600` (*Blessed Mystic's Woolies*) | `909400` (*Vindicator Mystic's Woolies*) |
+| **Feet** | `907900` (*Arcane Mystic's Slippers*) | `908700` (*Blessed Mystic's Slippers*) | `909500` (*Vindicator Mystic's Slippers*) |
 
 ---
 
@@ -151,25 +151,25 @@ As the character levels up, any heirloom equipped or stored in the character's b
 
 Sold exclusively by the **Master of Weapons** in Stormwind Bank and Orgrimmar Bank:
 
-| Weapon Type | Iconic Visual Reference | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
+| Weapon Type | Iconic Visual Reference | Guardian / Arcane Base | Blessed (Healer) Base | Vindicator Base |
 | :--- | :--- | :--- | :--- | :--- |
-| **1H Sword** | Cruel Barb | `911100` | `911200` | `911300` |
-| **2H Sword** | Whirlwind Sword | `911400` | `911500` | `911600` |
-| **1H Axe** | Butcher's Cleaver | `911700` | `911800` | `911900` |
-| **2H Axe** | Ravager | `912000` | `912100` | `912200` |
-| **1H Mace** | The Hand of Antu'sul | `912300` | `912400` | `912500` |
-| **2H Mace** | Mograine's Might | `912600` | `912700` | `912800` |
-| **Dagger** | Black Menace | `912900` | `913000` | `913100` |
-| **Fist Weapon** | Thekal's Grasp | `913200` | `913300` | `913400` |
-| **Polearm** | Grimlok's Charge | `913500` | `913600` | `913700` |
-| **Staff** | Illusionary Rod | `915300` | `915400` | `915500` |
-| **Bow** | Gryphonwing Long Bow | `913800` | `913900` | `914000` |
-| **Gun** | Precisely Calibrated Boomstick | `914100` | `914200` | `914300` |
-| **Crossbow** | Blackcrow | `914400` | `914500` | `914600` |
-| **Wand** | Bonecreeper Stylus | `914700` | `914800` | `914900` |
-| **Thrown Weapon** | Deadly Throwing Axe | `915000` | `915100` | `915200` |
-| **Shield** | Aegis of the Scarlet Commander | `915900` | `916000` | `916100` |
-| **Caster Off-Hand** | Orb of Lorica | `915600` | `915700` | `915800` |
+| **1H Sword** | Cruel Barb | `911100` (*Guardian Cruel Barb*) | `911200` (*Blessed Cruel Barb*) | `911300` (*Vindicator Cruel Barb*) |
+| **2H Sword** | Whirlwind Sword | `911400` (*Guardian Whirlwind Sword*) | `911500` (*Blessed Whirlwind Sword*) | `911600` (*Vindicator Whirlwind Sword*) |
+| **1H Axe** | Butcher's Cleaver | `911700` (*Guardian Butcher's Cleaver*) | `911800` (*Blessed Butcher's Cleaver*) | `911900` (*Vindicator Butcher's Cleaver*) |
+| **2H Axe** | Ravager | `912000` (*Guardian Ravager*) | `912100` (*Blessed Ravager*) | `912200` (*Vindicator Ravager*) |
+| **1H Mace** | The Hand of Antu'sul | `912300` (*Guardian Hand of Antu'sul*) | `912400` (*Blessed Hand of Antu'sul*) | `912500` (*Vindicator Hand of Antu'sul*) |
+| **2H Mace** | Mograine's Might | `912600` (*Guardian Mograine's Might*) | `912700` (*Blessed Mograine's Might*) | `912800` (*Vindicator Mograine's Might*) |
+| **Dagger** | Black Menace | `912900` (*Guardian Black Menace*) | `913000` (*Blessed Black Menace*) | `913100` (*Vindicator Black Menace*) |
+| **Fist Weapon** | Thekal's Grasp | `913200` (*Guardian Thekal's Grasp*) | `913300` (*Blessed Thekal's Grasp*) | `913400` (*Vindicator Thekal's Grasp*) |
+| **Polearm** | Grimlok's Charge | `913500` (*Guardian Grimlok's Charge*) | `913600` (*Blessed Grimlok's Charge*) | `913700` (*Vindicator Grimlok's Charge*) |
+| **Staff** | Illusionary Rod | `915300` (*Arcane Illusionary Rod* - Spell Power) | `915400` (*Blessed Illusionary Rod* - Healing) | `915500` (*Vindicator Illusionary Rod* - Spell Power) |
+| **Bow** | Gryphonwing Long Bow | `913800` (*Guardian Gryphonwing Long Bow*) | `913900` (*Blessed Gryphonwing Long Bow*) | `914000` (*Vindicator Gryphonwing Long Bow*) |
+| **Gun** | Precisely Calibrated Boomstick | `914100` (*Guardian Boomstick*) | `914200` (*Blessed Boomstick*) | `914300` (*Vindicator Boomstick*) |
+| **Crossbow** | Blackcrow | `914400` (*Guardian Blackcrow*) | `914500` (*Blessed Blackcrow*) | `914600` (*Vindicator Blackcrow*) |
+| **Wand** | Bonecreeper Stylus | `914700` (*Arcane Bonecreeper Stylus* - Spell Power) | `914800` (*Blessed Bonecreeper Stylus* - Healing) | `914900` (*Vindicator Bonecreeper Stylus* - Spell Power) |
+| **Thrown Weapon** | Deadly Throwing Axe | `915000` (*Guardian Deadly Throwing Axe*) | `915100` (*Blessed Deadly Throwing Axe*) | `915200` (*Vindicator Deadly Throwing Axe*) |
+| **Shield** | Aegis of the Scarlet Commander | `915900` (*Guardian Aegis*) | `916000` (*Blessed Aegis*) | `916100` (*Vindicator Aegis*) |
+| **Caster Off-Hand** | Orb of Lorica | `915600` (*Arcane Orb of Lorica* - Spell Power) | `915700` (*Blessed Orb of Lorica* - Healing) | `915800` (*Vindicator Orb of Lorica* - Spell Power) |
 
 ---
 

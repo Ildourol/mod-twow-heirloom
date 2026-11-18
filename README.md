@@ -15,6 +15,8 @@ A standalone heirloom equipment module for the community `tortoise-wow` custom v
   - **Guardian** (Tank): Maximized Stamina, Strength/Agility, Defense, and Armor.
   - **Blessed** (Healer): Maximized Intellect, Spirit, and Healing/Spell Power.
   - **Vindicator** (DPS): Maximized Attack Power, Strength/Agility, Critical Strike, or Spell Damage.
+  - **Arcane** (Cloth / Caster): Specialized Spell Damage and Intellect/Stamina (replacing Tank for Cloth armor, Staves, Wands, and Off-Hands).
+  - All items feature evocative double-quoted lore descriptions. Staves, Wands, and Caster Off-Hands provide scaling Spell Power or Healing instead of Attack Power or Defense.
 - **Standard Authentic WoW Armor Invariants:** Plate is Plate (level 40+ requirement), Mail is Mail (level 1+), Leather is Leather, and Cloth is Cloth. No artificial armor morphing or cross-armor type shifting; gear behaves cleanly according to standard World of Warcraft class proficiencies.
 - **Configurable bonus XP:** Shoulder **10%**, chest **10%**, ring **5% each**, trinket **0% each** by default (totaling **+30%** bonus XP with standard full set). The bonus is evaluated by equipment slot on the `OnGiveXP` hook, and the final effective percentage is capped at 200%. Weapon heirlooms do not contribute bonus XP.
 - **Durability Maintenance:** Equipped heirlooms are immune to durability decay or automatically maintained at full repair.
