@@ -76,10 +76,9 @@ Configured XP slot percentages are bounded to 0–100 individually; invalid/nega
 2. Re-run CMake generation so the module is recognized.
 3. Build the core server (e.g. MSBuild `TurtleWoW.sln` Release x64).
 4. **Database Migrations (Bundled & Standalone)**:
-   - All 9,720 level 1-60 heirloom item templates, dual-vendor curators, and 25 capital bank spawns are bundled directly in `data/sql/world/`:
-     - `0001_heirloom_world.sql`
+   - All 9,720 level 1-60 heirloom item templates, capital city curators, and bank spawns are bundled directly in `data/sql/world/`:
      - `0002_custom_heirloom_items.sql` (9,720 scaling item templates across 162 archetypes)
-     - `0003_heirloom_vendor_npc.sql` (Dual-vendor curators, inventories, and 25 bank spawns)
+     - `0003_heirloom_vendor_npc.sql` (Capital curators, all-in-one inventories, and Stormwind/Orgrimmar bank spawns)
    - **Automatic Standalone Import**: With `Heirloom.Database.AutoImport = 1` (default ON), the module automatically verifies the world database on server boot. If items or vendors are not yet present, it executes the migrations and reloads memory prototypes automatically without requiring manual SQL imports or server restarts.
    - **Manual Import (Optional)**: If preferred, server operators can manually import the three files above into `tw_world` using any MariaDB/MySQL client.
 5. Copy `conf/mod-twow-heirloom.conf.dist` to `Server/etc/modules/mod-twow-heirloom.conf` and adjust settings as desired.

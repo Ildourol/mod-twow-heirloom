@@ -215,11 +215,16 @@ namespace
         }
 
         namespace fs = std::filesystem;
-        std::vector<std::string> sqlFiles = {
-            (fs::path(sqlDir) / "0001_heirloom_world.sql").string(),
-            (fs::path(sqlDir) / "0002_custom_heirloom_items.sql").string(),
-            (fs::path(sqlDir) / "0003_heirloom_vendor_npc.sql").string()
-        };
+        std::vector<std::string> sqlFiles;
+        std::error_code dirEc;
+        for (auto const& dirEntry : fs::directory_iterator(sqlDir, dirEc))
+        {
+            if (dirEntry.is_regular_file() && dirEntry.path().extension() == ".sql")
+            {
+                sqlFiles.push_back(dirEntry.path().string());
+            }
+        }
+        std::sort(sqlFiles.begin(), sqlFiles.end());
 
         for (std::string const& filePath : sqlFiles)
         {

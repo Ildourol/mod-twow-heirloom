@@ -93,18 +93,13 @@ When enabled, the module checks player equipment on login, level changes, loot a
 
 Armor types strictly preserve standard WoW invariants: Plate is Plate (wearable at level 40+), Mail is Mail (wearable from level 1), Leather is Leather, and Cloth is Cloth. There is no armor morphing or cross-type conversion; gear behaves identically to standard authentic gear with native level scaling.
 
-## 4. Current dual-vendor SQL
+## 4. Current vendor SQL
 
-`data/sql/world/0003_heirloom_vendor_npc.sql` describes two merchant families, each replicated across hubs:
+`data/sql/world/0003_heirloom_vendor_npc.sql` establishes capital curators:
+- **Stormwind Bank (Alliance)**: `Kaelen Dawnbrow` (`entry 2000201`, `guid 3000201`)
+- **Orgrimmar Bank (Horde)**: `Krag'jin` (`entry 2000204`, `guid 3000204`)
 
-| NPC group | Entry range | Intended inventory |
-| --- | --- | --- |
-| Curator of Antiquities | `2000200–2000212` | 111 armor/accessory family entries |
-| Master of Weapons | `2000220–2000232` | 51 weapon/off-hand family entries |
-
-The SQL uses level-1 family variants in `npc_vendor`, while the `HeirloomVendorScript` and player-update code attempt to replace entries based on a player's level. **This writes shared vendor-list records**, so simultaneous users at different levels and vendor paging must be tested in staging. Do not claim per-player isolation or guaranteed client compatibility without those tests.
-
-The vendor SQL begins with deletion of NPC/vendor records across `2000200–2000235`. It is **not** an innocuous insert-only migration. Audit existing entries, backups, spawn links and schema before running it. The migration provides vendor/NPC records but does **not** supply the referenced `item_template` definitions. Prices and zero-cost availability must be checked in the installed templates and vendor behavior, not assumed from guide prose.
+Each merchant provides all 162 heirloom pieces (111 armor & jewelry, 51 weapons & shields) directly to players. All other regional spawns are pruned to ensure a clean capital-centric setup.
 
 ## 5. Recognition, account binding and mail
 
