@@ -156,7 +156,7 @@ namespace
         if (!customPath.empty())
         {
             std::error_code ec;
-            if (fs::exists(fs::path(customPath) / "0002_custom_heirloom_items.sql", ec))
+            if (fs::exists(fs::path(customPath) / "0001_custom_heirloom_items.sql", ec))
                 return customPath;
         }
 
@@ -174,7 +174,7 @@ namespace
         for (std::string const& p : candidates)
         {
             std::error_code ec;
-            if (fs::exists(fs::path(p) / "0002_custom_heirloom_items.sql", ec))
+            if (fs::exists(fs::path(p) / "0001_custom_heirloom_items.sql", ec))
                 return p;
         }
 

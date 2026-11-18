@@ -4,7 +4,7 @@
 
 A standalone heirloom equipment module for the community `tortoise-wow` custom vMaNGOS-derived server and its Turtle WoW-compatible client. This is a community project, not an official Turtle WoW module.
 
-> **Bundled & Standalone:** The full item catalog of 9,720 level 1–60 templates across 162 archetypes is bundled directly in `data/sql/world/0002_custom_heirloom_items.sql`. Dual-vendor curators (Curator of Antiquities & Master of Weapons) and 25 capital bank spawns are bundled in `data/sql/world/0003_heirloom_vendor_npc.sql`. With `Heirloom.Database.AutoImport = 1` (default), the module automatically verifies the world database and imports missing migrations on world startup seamlessly without requiring manual SQL imports or server restarts.
+> **Bundled & Standalone:** The full item catalog of 9,720 level 1–60 templates across 162 archetypes is bundled directly in `data/sql/world/0001_custom_heirloom_items.sql`. Dual-vendor curators (Curator of Antiquities & Master of Weapons) in Stormwind Bank and outside Orgrimmar Bank are bundled in `data/sql/world/0002_heirloom_vendor_npc.sql`. With `Heirloom.Database.AutoImport = 1` (default), the module automatically verifies the world database and imports missing migrations on world startup seamlessly without requiring manual SQL imports or server restarts.
 
 ## Features
 
@@ -26,9 +26,9 @@ A standalone heirloom equipment module for the community `tortoise-wow` custom v
 
 ## Item catalog and vendors
 
-The current `src/HeirloomItemMapping.inc` contains **162** legacy-to-level-family mappings: **111 armor/accessory entries** and **51 weapon/off-hand entries**. Each family uses a base divisible by 100; a level-specific entry is `base + playerLevel` (1–60). For example, legacy Plate head `991111` maps to base `900000`, so its level-20 destination is `900020`. All 9,720 destination templates are bundled in `0002_custom_heirloom_items.sql`.
+The current `src/HeirloomItemMapping.inc` contains **162** legacy-to-level-family mappings: **111 armor/accessory entries** and **51 weapon/off-hand entries**. Each family uses a base divisible by 100; a level-specific entry is `base + playerLevel` (1–60). For example, legacy Plate head `991111` maps to base `900000`, so its level-20 destination is `900020`. All 9,720 destination templates are bundled in `0001_custom_heirloom_items.sql`.
 
-`0003_heirloom_vendor_npc.sql` provides a **dual-vendor** layout: Curators of Antiquities (`2000200–2000212`) and Masters of Weapons (`2000220–2000232`), spawned across 25 major capital bank locations. The first group lists 111 armor/accessory families; the second lists 51 weapons/off-hands. Its records refer to **level-1 destination entries**, which the vendor scripts adapt for player level dynamically upon opening the vendor window.
+`0002_heirloom_vendor_npc.sql` provides a **dual-vendor** layout: Curators of Antiquities (Armor & Jewelry) and Masters of Weapons (Weapons, Ranged, Shields), spawned at Stormwind Bank and outside Orgrimmar Bank. The first group lists 111 armor/accessory families; the second lists 51 weapons/off-hands. Its records refer to **level-1 destination entries**, which the vendor scripts adapt for player level dynamically upon opening the vendor window.
 
 For mapped legacy IDs, detailed category and example commands, see [Heirloom Guide](docs/HEIRLOOM_GUIDE.md).
 
@@ -77,8 +77,8 @@ Configured XP slot percentages are bounded to 0–100 individually; invalid/nega
 3. Build the core server (e.g. MSBuild `TurtleWoW.sln` Release x64).
 4. **Database Migrations (Bundled & Standalone)**:
    - All 9,720 level 1-60 heirloom item templates, capital city curators, and bank spawns are bundled directly in `data/sql/world/`:
-     - `0002_custom_heirloom_items.sql` (9,720 scaling item templates across 162 archetypes)
-     - `0003_heirloom_vendor_npc.sql` (Capital dual curators: Armor Curator & Weapon Master in Stormwind Bank and outside Orgrimmar Bank)
+     - `0001_custom_heirloom_items.sql` (9,720 scaling item templates across 162 archetypes)
+     - `0002_heirloom_vendor_npc.sql` (Capital dual curators: Armor Curator & Weapon Master in Stormwind Bank and outside Orgrimmar Bank)
    - **Automatic Standalone Import**: With `Heirloom.Database.AutoImport = 1` (default ON), the module automatically verifies the world database on server boot. If items or vendors are not yet present, it executes the migrations and reloads memory prototypes automatically without requiring manual SQL imports or server restarts.
    - **Manual Import (Optional)**: If preferred, server operators can manually import the three files above into `tw_world` using any MariaDB/MySQL client.
 5. Copy `conf/mod-twow-heirloom.conf.dist` to `Server/etc/modules/mod-twow-heirloom.conf` and adjust settings as desired.

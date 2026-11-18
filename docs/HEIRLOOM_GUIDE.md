@@ -2,7 +2,7 @@
 
 This guide tracks the **current repository implementation**, not a guaranteed deployed server state. See the [README](../README.md) for setup, configuration defaults, formula, and supported/unsupported feature boundaries.
 
-> **Catalog prerequisite:** `data/sql/world/0002_custom_heirloom_items.sql` is **empty** at this revision. The vendor SQL does not supply the item templates referenced below. Populate a separately verified, compatible item catalog in a controlled environment before testing the vendors or spawning the items.
+> **Catalog prerequisite:** `data/sql/world/0001_custom_heirloom_items.sql` contains the complete bundled item catalog of 9,720 templates. Ensure `0001_custom_heirloom_items.sql` and `0002_heirloom_vendor_npc.sql` are imported into `tw_world` (handled automatically on world startup via `Heirloom.Database.AutoImport = 1`).
 
 ## 1. How item IDs work now
 
@@ -95,7 +95,7 @@ Armor types strictly preserve standard WoW invariants: Plate is Plate (wearable 
 
 ## 4. Current vendor SQL
 
-`data/sql/world/0003_heirloom_vendor_npc.sql` establishes capital dual curators:
+`data/sql/world/0002_heirloom_vendor_npc.sql` establishes capital dual curators:
 - **Stormwind Bank (Alliance)**:
   - Armor Curator: `Kaelen Dawnbrow` (`entry 2000201`, `guid 3000201`, 111 armor & jewelry pieces)
   - Weapon Master: `Branden Stormforged` (`entry 2000221`, `guid 3000221`, 51 weapons & shields)
