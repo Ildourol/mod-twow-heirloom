@@ -166,12 +166,13 @@ Every major city bank hosts a race-appropriate **Curator of Antiquities** sellin
 | City / Hub | NPC Name | Model / Race | Entry | Map | Coordinates (X, Y, Z, Orientation) | Exact Bank Spot & Spacing |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Stormwind City** | `Kaelen Dawnbrow` | Human (`1437`) | `2000201` | `0` | `-8925.25, 632.63, 99.52 (O: 5.30)` | Trade District Bank, verified GPS position |
-| **Ironforge** | `Thordin Stoneflint` | Dwarf (`3037`) | `2000202` | `0` | `-4874.50, -1002.50, 504.02 (O: 2.10)` | The Commons Bank vault alcove |
+| **Ironforge (Bank)** | `Thordin Stoneflint` | Dwarf (`3037`) | `2000202` | `0` | `-4882.01, -978.17, 503.94 (O: 3.99)` | The Commons Bank vault counter, verified GPS position |
+| **Ironforge (Commons)** | `Thordin Stoneflint` | Dwarf (`3037`) | `2000202` | `0` | `-4898.60, -966.86, 501.45 (O: 2.42)` | The Commons outside bank, verified GPS position |
 | **Darnassus** | `Faelon Moonshadow` | Night Elf (`2210`) | `2000203` | `1` | `9934.20, 2506.50, 1317.80 (O: 1.15)` | Temple Gardens Bank terrace pavilion |
 | **Orgrimmar** | `Krag'jin` | Orc (`1310`) | `2000204` | `1` | `1627.50, -4370.20, 11.81 (O: 0.45)` | Valley of Strength Bank, verified GPS position |
 | **Undercity** | `Mortis Blackwood` | Forsaken (`2645`) | `2000205` | `0` | `1592.50, 247.80, -52.06 (O: 5.10)` | Central Bank Ring counter arc |
-| **Thunder Bluff** | `Brave Skyhorn` | Tauren (`2104`) | `2000206` | `1` | `-1263.80, 30.50, 128.27 (O: 0.25)` | Lower Rise Bank Totem tent |
-| **Alah'Thalas** | `Denalah Silverpoint` | High Elf (`16036`) | `2000207` | `0` | `3218.50, -2496.20, 111.75 (O: 3.60)` | High Elf Capital Bank interior chamber |
+| **Thunder Bluff** | `Brave Skyhorn` | Tauren (`2104`) | `2000206` | `1` | `-1262.31, 28.06, 128.19 (O: 0.47)` | Lower Rise Bank Totem tent, verified GPS position |
+| **Alah'Thalas** | `Denalah Silverpoint` | High Elf (`16036`) | `2000207` | `0` | `4213.83, -2733.02, 9.24 (O: 0.13)` | High Elf Plaza, verified GPS position |
 | **Sparkwater Port** | `Zixxle Cogspinner` | Goblin (`7058`) | `2000208` | `1` | `848.50, -5048.50, 6.03 (O: 2.05)` | Goblin Capital Bank interior lobby |
 | **Booty Bay** | `Fizrik Sprocket` | Goblin (`7160`) | `2000209` | `0` | `-14412.50, 526.20, 5.24 (O: 2.10)` | Inside bank room near ledger desk |
 | **Gadgetzan** | `Bazzle Steamvalve` | Goblin (`7058`) | `2000210` | `1` | `-7194.80, -3826.50, 8.64 (O: 3.14)` | Inside bank building |
