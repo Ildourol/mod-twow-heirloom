@@ -53,7 +53,7 @@ void HeirloomMgr::HandlePlayerLogout(Player* player)
     if (!player)
         return;
 
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
     auto it = m_playerCaches.find(player->GetObjectGuid());
     if (it != m_playerCaches.end())
     {
@@ -87,7 +87,7 @@ void HeirloomMgr::HandlePlayerUpdate(Player* player, uint32 diff)
     if (!player)
         return;
 
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
     auto& cache = m_playerCaches[player->GetObjectGuid()];
 
     // FINDING-01 & FINDING-05: Feature-decoupled execution matrix
@@ -319,7 +319,7 @@ void HeirloomMgr::RecalculatePlayerHeirlooms(Player* player, bool force)
     if (!player)
         return;
 
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
     auto& cache = m_playerCaches[player->GetObjectGuid()];
 
     bool isModuleEnabled = sHeirloomConfig.IsEnabled();
@@ -822,7 +822,7 @@ void HeirloomMgr::CheckAndApplyArmorMorph(Player* player, uint8 oldLevel, uint8 
 
         // Unapply existing deltas if applied
         {
-            std::lock_guard<std::mutex> lock(m_mutex);
+            std::lock_guard<std::recursive_mutex> lock(m_mutex);
             auto it = m_playerCaches.find(player->GetObjectGuid());
             if (it != m_playerCaches.end() && it->second.slots[slot].active)
             {
