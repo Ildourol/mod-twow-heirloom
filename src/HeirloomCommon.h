@@ -77,6 +77,10 @@ struct HeirloomSlotDelta
     int32 armorDelta{0};
     int32 blockDelta{0};
 
+    // Weapon damage value (scaled - base)
+    int32 weaponDamageDelta{0};
+    uint8 weaponAttackType{0};
+
     void Reset()
     {
         itemEntry = 0;
@@ -90,6 +94,8 @@ struct HeirloomSlotDelta
         }
         armorDelta = 0;
         blockDelta = 0;
+        weaponDamageDelta = 0;
+        weaponAttackType = 0;
     }
 };
 

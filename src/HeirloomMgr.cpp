@@ -75,6 +75,11 @@ void HeirloomMgr::HandlePlayerLevelChanged(Player* player, uint8 oldLevel)
 
     CheckAndApplyArmorMorph(player, oldLevel, player->GetLevel());
     RecalculatePlayerHeirlooms(player, true);
+
+    if (sHeirloomConfig.IsAnnounceEnabled())
+    {
+        ChatHandler(player->GetSession()).PSendSysMessage("Your heirloom equipment has adapted to Level %u!", player->GetLevel());
+    }
 }
 
 void HeirloomMgr::HandlePlayerUpdate(Player* player, uint32 diff)
@@ -142,6 +147,11 @@ void HeirloomMgr::HandlePlayerUpdate(Player* player, uint32 diff)
 
         if (guidsChanged || breakStateChanged || effectiveLvl != cache.lastKnownLevel || configGenChanged)
         {
+            if (guidsChanged)
+            {
+                CheckAndApplyArmorMorph(player, player->GetLevel(), player->GetLevel());
+            }
+
             for (uint8 slot = 0; slot < HEIRLOOM_EQUIPMENT_SLOTS_COUNT; ++slot)
             {
                 Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
@@ -231,6 +241,24 @@ void HeirloomMgr::HandlePlayerUpdate(Player* player, uint32 diff)
                             {
                                 sLog.outDetail("[mod-twow-heirloom] Item %u has native block %u outside protective bounds [0, %u]; refusing block scaling delta (native block remains unmodified)",
                                     proto->ItemId, proto->Block, HEIRLOOM_MAX_VALID_NATIVE_BLOCK);
+                            }
+                        }
+
+                        // Weapon damage scaling
+                        if (proto->Class == ITEM_CLASS_WEAPON && proto->Damage[0].DamageMax > 0.0f)
+                        {
+                            float avg0 = (proto->Damage[0].DamageMin + proto->Damage[0].DamageMax) * 0.5f;
+                            float avg1 = avg0 * static_cast<float>(ratio) * mult;
+                            int32 dmgDiff = static_cast<int32>(std::round(avg1 - avg0));
+                            if (dmgDiff > 0)
+                            {
+                                delta.weaponDamageDelta = dmgDiff;
+                                if (slot == EQUIPMENT_SLOT_MAINHAND)
+                                    delta.weaponAttackType = BASE_ATTACK;
+                                else if (slot == EQUIPMENT_SLOT_OFFHAND)
+                                    delta.weaponAttackType = OFF_ATTACK;
+                                else if (slot == EQUIPMENT_SLOT_RANGED)
+                                    delta.weaponAttackType = RANGED_ATTACK;
                             }
                         }
 
@@ -421,6 +449,24 @@ void HeirloomMgr::RecalculatePlayerHeirlooms(Player* player, bool force)
                     }
                 }
 
+                // Weapon damage scaling
+                if (proto->Class == ITEM_CLASS_WEAPON && proto->Damage[0].DamageMax > 0.0f)
+                {
+                    float avg0 = (proto->Damage[0].DamageMin + proto->Damage[0].DamageMax) * 0.5f;
+                    float avg1 = avg0 * static_cast<float>(ratio) * mult;
+                    int32 dmgDiff = static_cast<int32>(std::round(avg1 - avg0));
+                    if (dmgDiff > 0)
+                    {
+                        delta.weaponDamageDelta = dmgDiff;
+                        if (slot == EQUIPMENT_SLOT_MAINHAND)
+                            delta.weaponAttackType = BASE_ATTACK;
+                        else if (slot == EQUIPMENT_SLOT_OFFHAND)
+                            delta.weaponAttackType = OFF_ATTACK;
+                        else if (slot == EQUIPMENT_SLOT_RANGED)
+                            delta.weaponAttackType = RANGED_ATTACK;
+                    }
+                }
+
                 delta.itemEntry = proto->ItemId;
                 delta.itemGuid = currentGuid;
                 delta.active = true;
@@ -606,6 +652,19 @@ void HeirloomMgr::ApplySlotDelta(Player* player, HeirloomSlotDelta const& delta,
     {
         player->HandleBaseModValue(SHIELD_BLOCK_VALUE, FLAT_MOD, static_cast<float>(delta.blockDelta), apply);
     }
+
+    // Weapon Damage
+    if (delta.weaponDamageDelta != 0)
+    {
+        UnitMods uMod = UNIT_MOD_DAMAGE_MAINHAND;
+        if (delta.weaponAttackType == OFF_ATTACK)
+            uMod = UNIT_MOD_DAMAGE_OFFHAND;
+        else if (delta.weaponAttackType == RANGED_ATTACK)
+            uMod = UNIT_MOD_DAMAGE_RANGED;
+
+        player->HandleStatModifier(uMod, TOTAL_VALUE, static_cast<float>(delta.weaponDamageDelta), apply);
+        player->UpdateDamagePhysical(static_cast<WeaponAttackType>(delta.weaponAttackType));
+    }
 }
 
 void HeirloomMgr::RemoveAllDeltas(Player* player, HeirloomPlayerCache& cache)
@@ -716,14 +775,6 @@ void HeirloomMgr::CheckAndApplyArmorMorph(Player* player, uint8 oldLevel, uint8 
         return;
 
     bool toHighTier = (newLevel >= 40);
-
-    // If crossing the boundary or checking on login:
-    if (oldLevel != 0)
-    {
-        bool wasHighTier = (oldLevel >= 40);
-        if (wasHighTier == toHighTier)
-            return; // No tier change
-    }
 
     // Auto-learn armor skill if configured
     if (toHighTier && sHeirloomConfig.IsAutoLearnArmorSkillEnabled())

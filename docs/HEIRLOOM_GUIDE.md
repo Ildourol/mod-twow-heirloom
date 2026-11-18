@@ -9,16 +9,16 @@ Every gear slot, weapon type, and jewelry piece features **three distinct specia
 
 All 156 heirloom pieces share the core heirloom invariants:
 - **Quality = 5 (Legendary Orange font)** in tooltips and inventory bags.
-- **Bonding = 6 (Bind to Account)** ??" completely cross-faction, account-wide mail support.
-- **MaxDurability = 0** ??" immune to durability loss, zero repair costs forever.
-- **Authentic Lore Inscriptions** ??" evocative flavor text on every item.
-- **Dynamic 1??"60 Stat Scaling** ??" scales continuously as the character levels up.
+- **Bonding = 6 (Bind to Account)** -- completely cross-faction, account-wide mail support.
+- **MaxDurability = 0** -- immune to durability loss, zero repair costs forever.
+- **Authentic Lore Inscriptions** -- evocative flavor text on every item.
+- **Dynamic 1--60 Stat Scaling** -- scales continuously as the character levels up.
 
 ---
 
 ## 1. Quick Spawn Commands (`.additem`)
 
-### A. Plate Armor ??" Field Plate Collection (8 Pieces x 3 Roles)
+### A. Plate Armor -- Field Plate Collection (8 Pieces x 3 Roles)
 *Visual Model: Classic Field Plate set (`9290`, `9292`, `9286`, `9285`, `9287`, `9288`, `9291`, `9289`)*
 
 | Slot | Tank Version (Vanguard) | Healer Version (Grace) | DPS Version (Slaughter) |
@@ -34,7 +34,7 @@ All 156 heirloom pieces share the core heirloom invariants:
 
 ---
 
-### B. Mail Armor ??" Banded Mail Collection (8 Pieces x 3 Roles)
+### B. Mail Armor -- Banded Mail Collection (8 Pieces x 3 Roles)
 *Visual Model: Classic Banded Mail set (`10408`, `9842`, `9836`, `9837`, `9839`, `9840`, `9841`, `10409`)*
 
 | Slot | Tank Version (Vanguard) | Healer Version (Grace) | DPS Version (Slaughter) |
@@ -50,7 +50,7 @@ All 156 heirloom pieces share the core heirloom invariants:
 
 ---
 
-### C. Leather Armor ??" Blackened Defias Collection (8 Pieces x 3 Roles)
+### C. Leather Armor -- Blackened Defias Collection (8 Pieces x 3 Roles)
 *Visual Model: Classic Blackened Defias set & Bandit pieces (`7997`, `10405`, `10399`, `9777`, `10401`, `10403`, `10400`, `10402`)*
 
 | Slot | Tank Version (Vanguard - Bear) | Healer Version (Grace - Resto) | DPS Version (Slaughter - Rogue/Cat) |
@@ -66,7 +66,7 @@ All 156 heirloom pieces share the core heirloom invariants:
 
 ---
 
-### D. Cloth Armor ??" Mystic's Collection (8 Pieces x 3 Roles)
+### D. Cloth Armor -- Mystic's Collection (8 Pieces x 3 Roles)
 *Visual Model: Mystic's Robes & Shadow Hood (`4323`, `14368`, `14371`, `14366`, `14367`, `14025`, `14370`, `14364`)*
 
 | Slot | Tank Version (Vanguard - Warlock) | Healer Version (Grace - Priest) | DPS Version (Slaughter - Mage/Lock) |
@@ -142,7 +142,7 @@ Every major city bank hosts a race-appropriate **Curator of Antiquities** sellin
 
 - **`mod-twow-ptr` is completely intact**: Both `Keklord Faelan Tordring` (`2000100`) and `Turtle` (`2000101`) remain in all capital banks and testing areas.
 - **Orgrimmar Zero-Collision Guarantee**: In Orgrimmar bank, `Krag'jin` stands at your exact GPS coordinates (`1627.50, -4370.20`), `Turtle` stands cleanly beside him at (`1630.00, -4367.50`), and `Keklord` stands at (`1624.80, -4373.50`).
-- **Stormwind Zero-Collision Guarantee**: `Kaelen Dawnbrow` stands at your exact GPS coordinates (`-8925.25, 632.63`), across the hall from the PTR NPCs (`Y: 614.20`??"`617.50`).
+- **Stormwind Zero-Collision Guarantee**: `Kaelen Dawnbrow` stands at your exact GPS coordinates (`-8925.25, 632.63`), across the hall from the PTR NPCs (`Y: 614.20`--`617.50`).
 
 ---
 

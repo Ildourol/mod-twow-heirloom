@@ -41,7 +41,7 @@ private:
     void ApplySlotDelta(Player* player, HeirloomSlotDelta const& delta, uint8 slot, bool apply);
     void RemoveAllDeltas(Player* player, HeirloomPlayerCache& cache);
 
-    mutable std::mutex m_mutex;
+    mutable std::recursive_mutex m_mutex;
     std::unordered_map<ObjectGuid, HeirloomPlayerCache> m_playerCaches;
 };
 

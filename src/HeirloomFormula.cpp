@@ -39,12 +39,14 @@ namespace HeirloomFormula
         if (b == t)
             return 1.0;
 
-        double r = static_cast<double>(t) / static_cast<double>(b);
+        // Linear item scaling budget formula from mod-twow-item-level-scaling:
+        // Budget ratio R(L) = (L + 5.0) / (L0 + 5.0)
+        double r = (static_cast<double>(t) + 5.0) / (static_cast<double>(b) + 5.0);
         if (!std::isfinite(r) || r <= 0.0)
             return 1.0;
 
         // Clamp to prevent overflow or extreme numbers
-        return std::clamp(r, 0.05, 10.0);
+        return std::clamp(r, 1.0, 15.0);
     }
 
     int32 ScaleStat(int32 baseStat, double ratio, float multiplier)
