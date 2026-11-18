@@ -1,0 +1,32 @@
+# User local and IDE files
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.VC.db
+Thumbs.db
+[Dd]esktop.ini
+.DS_Store
+
+# Build artifacts
+build*/
+bin/
+*.obj
+*.lib
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.a
+*.exp
+*.log
+
+# Agent, test, and local scratch files
+AGENTS.md
+*.local.md
+tests/
+t/
+test_*.py
+test_*.cpp
+test_*.ps1

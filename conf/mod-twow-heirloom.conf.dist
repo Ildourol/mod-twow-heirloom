@@ -1,0 +1,144 @@
+###################################################################################################
+# mod-twow-heirloom module configuration
+#
+# Turtle WoW Custom vMaNGOS (1.18.1 / 1.12.1)
+###################################################################################################
+
+[ModuleConf]
+
+#
+# Heirloom.Enable
+#     Description: Enables or disables the mod-twow-heirloom module.
+#     Default:     1 (Enabled)
+#                  0 (Disabled)
+#
+Heirloom.Enable = 1
+
+#
+# Heirloom.Scaling.Enable
+#     Description: Enables dynamic stat scaling for equipped heirloom items based on player level.
+#                  Scales primary stats (Str, Agi, Sta, Int, Spi, Mana, Health), armor, and block.
+#     Default:     1 (Enabled)
+#                  0 (Disabled)
+#
+Heirloom.Scaling.Enable = 1
+
+#
+# Heirloom.Scaling.MaxLevel
+#     Description: Maximum level to which heirloom items scale attributes (bounds: 1 to 60).
+#     Default:     60
+#
+Heirloom.Scaling.MaxLevel = 60
+
+#
+# Heirloom.Scaling.StatMultiplier
+#     Description: Multiplier applied to scaled stats and armor.
+#                  1.0 corresponds to standard vanilla rare item budgets. Bounded between 0.1 and 10.0.
+#     Default:     1.0
+#
+Heirloom.Scaling.StatMultiplier = 1.0
+
+#
+# Heirloom.BonusXP.Enable
+#     Description: Enables bonus experience granted by equipped heirloom pieces.
+#     Default:     1 (Enabled)
+#                  0 (Disabled)
+#
+Heirloom.BonusXP.Enable = 1
+
+#
+# Heirloom.BonusXP.Rate
+#     Description: Global multiplier applied to all heirloom experience bonuses (bounds: 0.0 to 10.0).
+#     Default:     1.0
+#
+Heirloom.BonusXP.Rate = 1.0
+
+#
+# Heirloom.BonusXP.ShoulderPercent
+#     Description: Bonus experience percentage granted by an equipped heirloom shoulder piece.
+#     Default:     10.0 (10%)
+#
+Heirloom.BonusXP.ShoulderPercent = 10.0
+
+#
+# Heirloom.BonusXP.ChestPercent
+#     Description: Bonus experience percentage granted by an equipped heirloom chest piece.
+#     Default:     10.0 (10%)
+#
+Heirloom.BonusXP.ChestPercent = 10.0
+
+#
+# Heirloom.BonusXP.TrinketPercent
+#     Description: Bonus experience percentage granted by an equipped heirloom trinket.
+#     Default:     5.0 (5% each)
+#
+Heirloom.BonusXP.TrinketPercent = 5.0
+
+#
+# Heirloom.BonusXP.RingPercent
+#     Description: Bonus experience percentage granted by an equipped heirloom finger ring.
+#     Default:     5.0 (5% each)
+#
+Heirloom.BonusXP.RingPercent = 5.0
+
+#
+# Heirloom.Durability.Exempt
+#     Description: Audits equipped heirlooms and restores durability to prevent breakage.
+#                  Note: Authentic 100% loss prevention requires item templates with MaxDurability = 0.
+#     Default:     1 (Enabled)
+#                  0 (Disabled)
+#
+Heirloom.Durability.Exempt = 1
+
+#
+# Heirloom.AutoMorph.Enable
+#     Description: Enables automatic armor adaptation upon reaching level 40.
+#                  Warriors & Paladins: Mail heirlooms adapt to Plate at level 40.
+#                  Hunters & Shamans: Leather heirlooms adapt to Mail at level 40.
+#     Default:     1 (Enabled)
+#                  0 (Disabled)
+#
+Heirloom.AutoMorph.Enable = 1
+
+#
+# Heirloom.AutoMorph.AutoLearnArmorSkill
+#     Description: Automatically teaches the character Plate Mail (Warriors/Paladins) or
+#                  Mail (Hunters/Shamans) skill upon level 40 heirloom adaptation so
+#                  the upgraded armor is immediately usable and re-equippable.
+#     Default:     1 (Enabled)
+#                  0 (Disabled)
+#
+Heirloom.AutoMorph.AutoLearnArmorSkill = 1
+
+#
+# Heirloom.ItemIds
+#     Description: Comma-separated list of explicit item IDs treated as heirlooms (in addition
+#                  to any items with Bonding = 6 / BIND_ACCOUNT).
+#                  Setting to "default" loads the 15 dedicated custom heirloom items (IDs 990101 - 990115):
+#                    Plate: 990101 (Spaulders of Valor), 990102 (Breastplate of Valor)
+#                    Mail: 990103 (Champion Herod's Shoulder), 990104 (Champion's Deathdealer Breastplate),
+#                          990109 (Mystical Pauldrons of Elements), 990110 (Mystical Vest of Elements)
+#                    Leather: 990105 (Stained Shadowcraft Spaulders), 990106 (Stained Shadowcraft Tunic),
+#                             990111 (Preened Ironfeather Shoulders), 990112 (Preened Ironfeather Breastplate)
+#                    Cloth: 990107 (Tattered Dreadmist Mantle), 990108 (Tattered Dreadmist Robe)
+#                    Jewelry: 990113 (Discerning Eye of the Beast), 990114 (Swift Hand of Justice),
+#                             990115 (Dread Pirate Ring)
+#     Default:     "default"
+#
+Heirloom.ItemIds = "default"
+
+#
+# Heirloom.Announce.Enable
+#     Description: Sends a system notification to the player when heirloom bonus experience is awarded.
+#     Default:     0 (Disabled)
+#                  1 (Enabled)
+#
+Heirloom.Announce.Enable = 0
+
+#
+# Heirloom.Debug.Enable
+#     Description: Enables diagnostic logging for module operations.
+#     Default:     1 (Enabled per workspace diagnostic policy)
+#                  0 (Disabled)
+#
+Heirloom.Debug.Enable = 1
