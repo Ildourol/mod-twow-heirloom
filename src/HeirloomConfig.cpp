@@ -89,6 +89,8 @@ void HeirloomConfig::Load()
     m_durabilityExempt = sConfig.GetBoolDefault("Heirloom.Durability.Exempt", true);
     m_autoMorphEnabled = sConfig.GetBoolDefault("Heirloom.AutoMorph.Enable", true);
     m_autoLearnArmorSkill = sConfig.GetBoolDefault("Heirloom.AutoMorph.AutoLearnArmorSkill", true);
+    m_autoImport = sConfig.GetBoolDefault("Heirloom.Database.AutoImport", true);
+    m_sqlPath = sConfig.GetStringDefault("Heirloom.Database.SqlPath", "");
     m_announceEnabled = sConfig.GetBoolDefault("Heirloom.Announce.Enable", true);
     m_debugEnabled = sConfig.GetBoolDefault("Heirloom.Debug.Enable", true);
 

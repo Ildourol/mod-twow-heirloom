@@ -1,41 +1,17 @@
 -- ============================================================================
 -- mod-twow-heirloom: Dual-Vendor Heirloom Curators & Major Bank Spawns
--- Vendor 1 (Curator of Antiquities): Sells all 111 Armor & Jewelry pieces (11 pages)
--- Vendor 2 (Master of Weapons): Sells all 51 Weapons, Ranged, and Shields (5 pages)
--- Zero merchant overflow (capped under 13 pages for 1.12.1 client compatibility).
+-- Vendor 1 (Curator of Antiquities, 2000200-2000212): Sells 111 Armor & Jewelry pieces
+-- Vendor 2 (Master of Weapons, 2000220-2000232): Sells 51 Weapons, Ranged, and Shields
+-- Spawns: 25 Curators and Weapon Masters in major capital banks (Alliance & Horde)
+-- Idempotent for AutoUpdater and standalone auto-import
 -- ============================================================================
 
-DELETE FROM creature_template WHERE entry BETWEEN 2000200 AND 2000235;
-DELETE FROM 
-pc_vendor WHERE entry BETWEEN 2000200 AND 2000235;
+DELETE FROM `creature_template` WHERE `entry` BETWEEN 2000200 AND 2000235;
+DELETE FROM `creature` WHERE `id` BETWEEN 2000200 AND 2000235;
+DELETE FROM `creature` WHERE `guid` BETWEEN 3000200 AND 3000235;
+DELETE FROM `npc_vendor` WHERE `entry` BETWEEN 2000200 AND 2000235;
 
-/*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.20-13.0.2-MariaDB, for Win64 (AMD64)
---
--- Host: 127.0.0.1    Database: tw_world
--- ------------------------------------------------------
--- Server version	13.0.2-MariaDB
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
-
---
--- Dumping data for table `creature_template`
---
--- WHERE:  entry BETWEEN 2000200 AND 2000235
-
-SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
-LOCK TABLES `creature_template` WRITE;
-/*!40000 ALTER TABLE `creature_template` DISABLE KEYS */;
-INSERT INTO `creature_template` VALUES
+REPLACE INTO `creature_template` VALUES
 (2000200,1437,0,0,0,0,'Kaelen Dawnbrow','Curator of Antiquities',0,60,60,50000,50000,10000,10000,5000,35,5,1,1.14286,1,20,5,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,NULL,0,0,'',0,3,0,0,3,0,0,0,0,0,0,0,0,'npc_heirloom_vendor'),
 (2000201,1437,0,0,0,0,'Kaelen Dawnbrow','Curator of Antiquities',0,60,60,50000,50000,10000,10000,5000,35,5,1,1.14286,1,20,5,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,NULL,0,0,'',0,3,0,0,3,0,0,0,0,0,0,0,0,'npc_heirloom_vendor'),
 (2000202,3037,0,0,0,0,'Thordin Stoneflint','Curator of Antiquities',0,60,60,50000,50000,10000,10000,5000,35,5,1,1.14286,1,20,5,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,NULL,0,0,'',0,3,0,0,3,0,0,0,0,0,0,0,0,'npc_heirloom_vendor'),
@@ -62,20 +38,8 @@ INSERT INTO `creature_template` VALUES
 (2000230,7160,0,0,0,0,'Moxie Boomstick','Master of Weapons',0,60,60,50000,50000,10000,10000,5000,35,5,1,1.14286,1,20,5,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,NULL,0,0,'',0,3,0,0,3,0,0,0,0,0,0,0,0,'npc_heirloom_vendor'),
 (2000231,7058,0,0,0,0,'Tink Coldsteel','Master of Weapons',0,60,60,50000,50000,10000,10000,5000,35,5,1,1.14286,1,20,5,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,NULL,0,0,'',0,3,0,0,3,0,0,0,0,0,0,0,0,'npc_heirloom_vendor'),
 (2000232,7160,0,0,0,0,'Blizzy Sparkspark','Master of Weapons',0,60,60,50000,50000,10000,10000,5000,35,5,1,1.14286,1,20,5,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,NULL,0,0,'',0,3,0,0,3,0,0,0,0,0,0,0,0,'npc_heirloom_vendor');
-/*!40000 ALTER TABLE `creature_template` ENABLE KEYS */;
-UNLOCK TABLES;
-COMMIT;
-SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 
---
--- Dumping data for table `npc_vendor`
---
--- WHERE:  entry BETWEEN 2000200 AND 2000235
-
-SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
-LOCK TABLES `npc_vendor` WRITE;
-/*!40000 ALTER TABLE `npc_vendor` DISABLE KEYS */;
-INSERT INTO `npc_vendor` VALUES
+REPLACE INTO `npc_vendor` VALUES
 (2000200,1,900001,0,0,0,0),
 (2000200,2,900101,0,0,0,0),
 (2000200,3,900201,0,0,0,0),
@@ -2182,17 +2146,32 @@ INSERT INTO `npc_vendor` VALUES
 (2000232,49,915901,0,0,0,0),
 (2000232,50,916001,0,0,0,0),
 (2000232,51,916101,0,0,0,0);
-/*!40000 ALTER TABLE `npc_vendor` ENABLE KEYS */;
-UNLOCK TABLES;
-COMMIT;
-SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
+REPLACE INTO `creature` (`guid`, `id`, `id2`, `id3`, `id4`, `map`, `position_x`, `position_y`, `position_z`, `orientation`, `spawntimesecsmin`, `spawntimesecsmax`, `wander_distance`, `health_percent`, `mana_percent`, `movement_type`, `spawn_flags`, `visibility_mod`) VALUES
+  (3000201, 2000201, 0, 0, 0, 0, -8925.250977, 632.631714, 99.523598, 5.298635, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000202, 2000202, 0, 0, 0, 0, -4882.011719, -978.165649, 503.940491, 3.990201, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000213, 2000202, 0, 0, 0, 0, -4898.600098, -966.856995, 501.446014, 2.417750, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000203, 2000203, 0, 0, 0, 1, 9934.200000, 2506.500000, 1317.800000, 1.150000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000204, 2000204, 0, 0, 0, 1, 1627.500000, -4370.200195, 11.810000, 0.450000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000205, 2000205, 0, 0, 0, 0, 1592.500000, 247.800000, -52.060000, 5.100000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000206, 2000206, 0, 0, 0, 1, -1262.311646, 28.060507, 128.186676, 0.467972, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000207, 2000207, 0, 0, 0, 0, 4213.830078, -2733.020020, 9.238990, 0.126723, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000208, 2000208, 0, 0, 0, 1, 848.500000, -5048.500000, 6.030000, 2.050000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000209, 2000209, 0, 0, 0, 0, -14412.500000, 526.200000, 5.240000, 2.100000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000210, 2000210, 0, 0, 0, 1, -7194.800000, -3826.500000, 8.640000, 3.140000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000211, 2000211, 0, 0, 0, 1, -906.500000, -3728.200000, 9.710000, 0.350000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000212, 2000212, 0, 0, 0, 1, 6785.500000, -4670.200000, 723.970000, 5.800000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000221, 2000221, 0, 0, 0, 0, -8924.000000, 634.200000, 99.523598, 5.290000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000222, 2000222, 0, 0, 0, 0, -4880.500000, -976.500000, 503.940000, 3.990000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000223, 2000223, 0, 0, 0, 1, 9932.500000, 2505.000000, 1317.800000, 1.150000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000224, 2000224, 0, 0, 0, 1, 1629.000000, -4368.500000, 11.810000, 0.450000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000225, 2000225, 0, 0, 0, 0, 1594.200000, 249.500000, -52.060000, 5.100000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000226, 2000226, 0, 0, 0, 1, -1260.500000, 29.500000, 128.187000, 0.460000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000227, 2000227, 0, 0, 0, 0, 4215.500000, -2731.500000, 9.238990, 0.120000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000228, 2000228, 0, 0, 0, 1, 850.200000, -5047.000000, 6.030000, 2.050000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000229, 2000229, 0, 0, 0, 0, -14411.000000, 527.500000, 5.240000, 2.100000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000230, 2000230, 0, 0, 0, 1, -7193.000000, -3825.000000, 8.640000, 3.140000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000231, 2000231, 0, 0, 0, 1, -905.000000, -3726.500000, 9.710000, 0.350000, 25, 25, 0, 100, 100, 0, 1, 200),
+  (3000232, 2000232, 0, 0, 0, 1, 6787.000000, -4668.500000, 723.970000, 5.800000, 25, 25, 0, 100, 100, 0, 1, 200);
 
--- Dump completed on 2026-11-18 16:21:38
+UPDATE `creature_template` SET `script_name` = 'npc_heirloom_vendor', `npc_flags` = 129 WHERE `entry` BETWEEN 2000200 AND 2000235;

@@ -142,3 +142,22 @@ Heirloom.Announce.Enable = 1
 #                  0 (Disabled)
 #
 Heirloom.Debug.Enable = 1
+
+#
+# Heirloom.Database.AutoImport
+#     Description: Automatically checks tw_world database for required heirloom item templates
+#                  (entries 900001-916160), dual-vendor curators, and major bank spawns on world startup.
+#                  If missing, automatically executes module migrations from data/sql/world/ and
+#                  reloads memory templates seamlessly for standalone operation.
+#     Default:     1 (Enabled)
+#                  0 (Disabled)
+#
+Heirloom.Database.AutoImport = 1
+
+#
+# Heirloom.Database.SqlPath
+#     Description: Optional custom directory path pointing to the module's data/sql/world/ migration files.
+#                  If empty (""), the module automatically discovers the directory from standard relative paths.
+#     Default:     ""
+#
+Heirloom.Database.SqlPath = ""

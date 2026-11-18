@@ -1,30 +1,12 @@
-/*M!999999\- enable the sandbox mode */ 
--- MariaDB dump 10.20-13.0.2-MariaDB, for Win64 (AMD64)
---
--- Host: localhost    Database: tw_world
--- ------------------------------------------------------
--- Server version	13.0.2-MariaDB
+-- ============================================================================
+-- mod-twow-heirloom: Complete 1-60 Scaling Item Templates (9,720 Items)
+-- Families: 900001 - 916160 (162 Archetypes across Levels 1-60)
+-- Idempotent batch insertion for AutoUpdater and standalone auto-import
+-- ============================================================================
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
+DELETE FROM `item_template` WHERE `entry` BETWEEN 900001 AND 916260;
 
---
--- Dumping data for table `item_template`
---
--- WHERE:  entry BETWEEN 900001 AND 916260
-
-SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
-LOCK TABLES `item_template` WRITE;
-/*!40000 ALTER TABLE `item_template` DISABLE KEYS */;
-INSERT INTO `item_template` VALUES
+REPLACE INTO `item_template` VALUES
 (900001,4,4,'Field Plate Helmet (Tank)','Heavy steel visor forged to absorb crushing impacts on the frontline.',25839,5,0,1,0,0,1,-1,-1,1,1,0,0,0,0,0,0,0,0,1,0,7,2,4,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,26,0,0,0,0,0,0,7511,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (900002,4,4,'Field Plate Helmet (Tank)','Heavy steel visor forged to absorb crushing impacts on the frontline.',25839,5,0,1,0,0,1,-1,-1,2,1,0,0,0,0,0,0,0,0,1,0,7,2,4,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,30,0,0,0,0,0,0,7511,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (900003,4,4,'Field Plate Helmet (Tank)','Heavy steel visor forged to absorb crushing impacts on the frontline.',25839,5,0,1,0,0,1,-1,-1,3,1,0,0,0,0,0,0,0,0,1,0,7,3,4,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,35,0,0,0,0,0,0,7511,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
@@ -2601,7 +2583,7 @@ INSERT INTO `item_template` VALUES
 (904254,4,3,'Banded Armor (DPS)','Flexible ringed chestguard suited for swift archery draws in the brush.\"\n|cff00ff00Equip: Experience gained increased by 10%.|c00000000',27769,5,0,1,0,0,5,-1,-1,54,1,0,0,0,0,0,0,0,0,1,0,4,20,3,20,7,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,197,0,0,0,0,0,0,15808,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (904255,4,3,'Banded Armor (DPS)','Flexible ringed chestguard suited for swift archery draws in the brush.\"\n|cff00ff00Equip: Experience gained increased by 10%.|c00000000',27769,5,0,1,0,0,5,-1,-1,55,1,0,0,0,0,0,0,0,0,1,0,4,20,3,20,7,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,200,0,0,0,0,0,0,15808,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (904256,4,3,'Banded Armor (DPS)','Flexible ringed chestguard suited for swift archery draws in the brush.\"\n|cff00ff00Equip: Experience gained increased by 10%.|c00000000',27769,5,0,1,0,0,5,-1,-1,56,1,0,0,0,0,0,0,0,0,1,0,4,20,3,20,7,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,203,0,0,0,0,0,0,14049,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL);
-INSERT INTO `item_template` VALUES
+REPLACE INTO `item_template` VALUES
 (904257,4,3,'Banded Armor (DPS)','Flexible ringed chestguard suited for swift archery draws in the brush.\"\n|cff00ff00Equip: Experience gained increased by 10%.|c00000000',27769,5,0,1,0,0,5,-1,-1,57,1,0,0,0,0,0,0,0,0,1,0,4,21,3,21,7,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,207,0,0,0,0,0,0,14049,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (904258,4,3,'Banded Armor (DPS)','Flexible ringed chestguard suited for swift archery draws in the brush.\"\n|cff00ff00Equip: Experience gained increased by 10%.|c00000000',27769,5,0,1,0,0,5,-1,-1,58,1,0,0,0,0,0,0,0,0,1,0,4,21,3,21,7,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,210,0,0,0,0,0,0,14049,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (904259,4,3,'Banded Armor (DPS)','Flexible ringed chestguard suited for swift archery draws in the brush.\"\n|cff00ff00Equip: Experience gained increased by 10%.|c00000000',27769,5,0,1,0,0,5,-1,-1,59,1,0,0,0,0,0,0,0,0,1,0,4,21,3,21,7,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,213,0,0,0,0,0,0,15809,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
@@ -5204,7 +5186,7 @@ INSERT INTO `item_template` VALUES
 (908616,4,1,'Mystic\'s Woolies (Healer)','Comfortable prayer woolies sustaining concentration through long trials.',10079,5,0,1,0,0,7,-1,-1,16,1,0,0,0,0,0,0,0,0,1,0,6,7,5,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,0,0,0,0,0,0,7680,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (908617,4,1,'Mystic\'s Woolies (Healer)','Comfortable prayer woolies sustaining concentration through long trials.',10079,5,0,1,0,0,7,-1,-1,17,1,0,0,0,0,0,0,0,0,1,0,6,7,5,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,7680,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (908618,4,1,'Mystic\'s Woolies (Healer)','Comfortable prayer woolies sustaining concentration through long trials.',10079,5,0,1,0,0,7,-1,-1,18,1,0,0,0,0,0,0,0,0,1,0,6,8,5,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,0,7681,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL);
-INSERT INTO `item_template` VALUES
+REPLACE INTO `item_template` VALUES
 (908619,4,1,'Mystic\'s Woolies (Healer)','Comfortable prayer woolies sustaining concentration through long trials.',10079,5,0,1,0,0,7,-1,-1,19,1,0,0,0,0,0,0,0,0,1,0,6,8,5,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,7681,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (908620,4,1,'Mystic\'s Woolies (Healer)','Comfortable prayer woolies sustaining concentration through long trials.',10079,5,0,1,0,0,7,-1,-1,20,1,0,0,0,0,0,0,0,0,1,0,6,8,5,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,0,0,0,0,0,0,7681,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (908621,4,1,'Mystic\'s Woolies (Healer)','Comfortable prayer woolies sustaining concentration through long trials.',10079,5,0,1,0,0,7,-1,-1,21,1,0,0,0,0,0,0,0,0,1,0,6,9,5,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,17,0,0,0,0,0,0,7681,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
@@ -7803,7 +7785,7 @@ INSERT INTO `item_template` VALUES
 (912934,2,15,'Black Menace (Tank)','Parrying stiletto designed to deflect fatal strikes from the shadows.',20292,5,0,1,0,0,13,-1,-1,34,1,0,0,0,0,0,0,0,0,1,0,7,13,4,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1500,0,0,6,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13384,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (912935,2,15,'Black Menace (Tank)','Parrying stiletto designed to deflect fatal strikes from the shadows.',20292,5,0,1,0,0,13,-1,-1,35,1,0,0,0,0,0,0,0,0,1,0,7,13,4,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1500,0,0,7,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13384,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (912936,2,15,'Black Menace (Tank)','Parrying stiletto designed to deflect fatal strikes from the shadows.',20292,5,0,1,0,0,13,-1,-1,36,1,0,0,0,0,0,0,0,0,1,0,7,14,4,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1500,0,0,7,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13384,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL);
-INSERT INTO `item_template` VALUES
+REPLACE INTO `item_template` VALUES
 (912937,2,15,'Black Menace (Tank)','Parrying stiletto designed to deflect fatal strikes from the shadows.',20292,5,0,1,0,0,13,-1,-1,37,1,0,0,0,0,0,0,0,0,1,0,7,14,4,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1500,0,0,7,21,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13384,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (912938,2,15,'Black Menace (Tank)','Parrying stiletto designed to deflect fatal strikes from the shadows.',20292,5,0,1,0,0,13,-1,-1,38,1,0,0,0,0,0,0,0,0,1,0,7,14,4,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1500,0,0,7,22,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13385,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (912939,2,15,'Black Menace (Tank)','Parrying stiletto designed to deflect fatal strikes from the shadows.',20292,5,0,1,0,0,13,-1,-1,39,1,0,0,0,0,0,0,0,0,1,0,7,15,4,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1500,0,0,7,22,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,13385,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
@@ -9748,17 +9730,3 @@ INSERT INTO `item_template` VALUES
 (916158,4,6,'Aegis of the Scarlet Commander (DPS)','Spiked heraldic aegis designed for crushing bash attacks in the vanguard.',18751,5,0,1,0,0,14,-1,-1,58,1,0,0,0,0,0,0,0,0,1,0,4,21,3,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,52,472,0,0,0,0,0,0,14049,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (916159,4,6,'Aegis of the Scarlet Commander (DPS)','Spiked heraldic aegis designed for crushing bash attacks in the vanguard.',18751,5,0,1,0,0,14,-1,-1,59,1,0,0,0,0,0,0,0,0,1,0,4,21,3,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,53,480,0,0,0,0,0,0,15809,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL),
 (916160,4,6,'Aegis of the Scarlet Commander (DPS)','Spiked heraldic aegis designed for crushing bash attacks in the vanguard.',18751,5,0,1,0,0,14,-1,-1,60,1,0,0,0,0,0,0,0,0,1,0,4,22,3,11,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,54,488,0,0,0,0,0,0,15809,1,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,0,0,0,0,-1,0,-1,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NULL);
-/*!40000 ALTER TABLE `item_template` ENABLE KEYS */;
-UNLOCK TABLES;
-COMMIT;
-SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
-
--- Dump completed on 2026-11-18 16:42:34

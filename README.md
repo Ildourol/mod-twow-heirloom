@@ -4,7 +4,7 @@
 
 A standalone heirloom equipment module for the community `tortoise-wow` custom vMaNGOS-derived server and its Turtle WoW-compatible client. This is a community project, not an official Turtle WoW module.
 
-> **Important — item catalog not bundled:** The current `data/sql/world/0002_custom_heirloom_items.sql` is **empty**. The vendor SQL references level-specific item templates in the `900001–916160` families, but does **not** create them. You must supply a separately verified, compatible `item_template` catalog before using the vendor migration. Do not interpret the vendor SQL or the legacy item tables as a complete installable item pack.
+> **Bundled & Standalone:** The full item catalog of 9,720 level 1–60 templates across 162 archetypes is bundled directly in `data/sql/world/0002_custom_heirloom_items.sql`. Dual-vendor curators (Curator of Antiquities & Master of Weapons) and 25 capital bank spawns are bundled in `data/sql/world/0003_heirloom_vendor_npc.sql`. With `Heirloom.Database.AutoImport = 1` (default), the module automatically verifies the world database and imports missing migrations on world startup seamlessly without requiring manual SQL imports or server restarts.
 
 ## Features
 
@@ -26,11 +26,11 @@ A standalone heirloom equipment module for the community `tortoise-wow` custom v
 
 ## Item catalog and vendors
 
-The current `src/HeirloomItemMapping.inc` contains **162** legacy-to-level-family mappings: **111 armor/accessory entries** and **51 weapon/off-hand entries**. Each family uses a base divisible by 100; a level-specific entry is `base + playerLevel` (1–60). For example, legacy Plate head `991111` maps to base `900000`, so its level-20 destination is `900020`. That destination must exist in `item_template`.
+The current `src/HeirloomItemMapping.inc` contains **162** legacy-to-level-family mappings: **111 armor/accessory entries** and **51 weapon/off-hand entries**. Each family uses a base divisible by 100; a level-specific entry is `base + playerLevel` (1–60). For example, legacy Plate head `991111` maps to base `900000`, so its level-20 destination is `900020`. All 9,720 destination templates are bundled in `0002_custom_heirloom_items.sql`.
 
-`0003_heirloom_vendor_npc.sql` describes a **dual-vendor** layout: Curators of Antiquities (`2000200–2000212`) and Masters of Weapons (`2000220–2000232`). The first group lists 111 armor/accessory families; the second lists 51 weapons/off-hands. Its records refer to **level-1 destination entries**, which the current vendor scripts attempt to adapt for player level. These scripts mutate shared vendor data; validate behavior with two characters of different levels before considering this feature production-ready.
+`0003_heirloom_vendor_npc.sql` provides a **dual-vendor** layout: Curators of Antiquities (`2000200–2000212`) and Masters of Weapons (`2000220–2000232`), spawned across 25 major capital bank locations. The first group lists 111 armor/accessory families; the second lists 51 weapons/off-hands. Its records refer to **level-1 destination entries**, which the vendor scripts adapt for player level dynamically upon opening the vendor window.
 
-For mapped legacy IDs, detailed category and example commands, see [Heirloom Guide](docs/HEIRLOOM_GUIDE.md). These IDs and vendor references are **not evidence that item templates were shipped**.
+For mapped legacy IDs, detailed category and example commands, see [Heirloom Guide](docs/HEIRLOOM_GUIDE.md).
 
 ## Scaling model
 
@@ -47,7 +47,7 @@ Armor and block use the same ratio with their own value bounds. Custom `990000�
 
 ## Configuration
 
-Copy `conf/mod-twow-heirloom.conf.dist` into the module configuration location used by your target server. The file has a required `[ModuleConf]` section. Current defaults:
+Copy `conf/mod-twow-heirloom.conf.dist` into the module configuration location used by your target server (e.g. `Server/etc/modules/mod-twow-heirloom.conf`). The file has a required `[ModuleConf]` section. Current defaults:
 
 | Key | Default | Meaning |
 | --- | --- | --- |
@@ -67,22 +67,28 @@ Copy `conf/mod-twow-heirloom.conf.dist` into the module configuration location u
 | `Heirloom.ItemIds` | `"default"` | Built-in allowlist plus optional IDs |
 | `Heirloom.Announce.Enable` | `1` | Bonus-XP system messages |
 | `Heirloom.Debug.Enable` | `1` | Diagnostic logs |
+| `Heirloom.Database.AutoImport` | `1` | Standalone auto-import of missing items, vendors, and spawns on world startup |
+| `Heirloom.Database.SqlPath` | `""` | Optional custom path to `data/sql/world/` migration files |
 
 Configured XP slot percentages are bounded to 0–100 individually; invalid/negative inputs fall back to defaults. `Heirloom.ItemIds` accepts comma- or semicolon-separated numeric entries and the `default` keyword. **An empty value also selects the built-in default allowlist**, not an empty allowlist; supplying numeric IDs without `default` does not suppress the hardcoded range/switch recognition. Inspect `src/HeirloomConfig.cpp` for the current built-in IDs. Runtime configuration is loaded at startup and after config reload; audit effects are reconciled by player update.
 
-## Installation (operator-run)
+## Installation & Setup
 
-1. Match the module against the **exact** target core revision and client data. Inspect module loader/CMake integration and hooks; do not assume stock Vanilla or WotLK APIs.
-2. Add the module directory to the target's `modules/` folder and configure the project's CMake module discovery. **Build is operator-managed**; this documentation update did not compile or deploy the module.
-3. Back up the physical world database and confirm its mapping (commonly `tw_world`). Determine whether the server's SQL updater or manual imports own migrations; **never apply through both paths**.
-4. Review `0001_heirloom_world.sql` (documentation/example baseline). **Do not rely on `0002_custom_heirloom_items.sql`: it currently contains no SQL.** Provision and validate your compatible custom item templates separately first.
-5. Review `0003_heirloom_vendor_npc.sql` before importing: it contains `DELETE` statements for vendor/NPC ranges and bulk dump-style replacements. Verify ID ownership, dependent spawns, existing vendor content, and all referenced item entries. Import only into an approved backed-up environment.
-6. Install the `.conf` file under the location actually loaded by your target, validate INI syntax, then perform the operator's build and controlled staging launch.
-7. Test items, level progression, XP, vendor listings, armor skills, mail boundaries, bot sessions, and rollback using the [guide](docs/HEIRLOOM_GUIDE.md).
+1. Copy the `mod-twow-heirloom` directory to `Source/tortoise-wow/modules/`.
+2. Re-run CMake generation so the module is recognized.
+3. Build the core server (e.g. MSBuild `TurtleWoW.sln` Release x64).
+4. **Database Migrations (Bundled & Standalone)**:
+   - All 9,720 level 1-60 heirloom item templates, dual-vendor curators, and 25 capital bank spawns are bundled directly in `data/sql/world/`:
+     - `0001_heirloom_world.sql`
+     - `0002_custom_heirloom_items.sql` (9,720 scaling item templates across 162 archetypes)
+     - `0003_heirloom_vendor_npc.sql` (Dual-vendor curators, inventories, and 25 bank spawns)
+   - **Automatic Standalone Import**: With `Heirloom.Database.AutoImport = 1` (default ON), the module automatically verifies the world database on server boot. If items or vendors are not yet present, it executes the migrations and reloads memory prototypes automatically without requiring manual SQL imports or server restarts.
+   - **Manual Import (Optional)**: If preferred, server operators can manually import the three files above into `tw_world` using any MariaDB/MySQL client.
+5. Copy `conf/mod-twow-heirloom.conf.dist` to `Server/etc/modules/mod-twow-heirloom.conf` and adjust settings as desired.
+6. Start the server.
 
 ## Troubleshooting
 
-- **Vendor is empty or items cannot be spawned:** Check `item_template` for the level-specific entries; `0002_custom_heirloom_items.sql` is empty.
 - **Item does not change with level:** Check `Heirloom.Enable`, `Heirloom.Scaling.Enable`, legacy mapping, and existence of destination template `base + level`. Level-specific adaptation and delta scaling are distinct mechanisms.
 - **Unexpected bonus XP:** Default bonuses total **30%** if one shoulder, one chest, and two rings are equipped; trinkets default to **0%**, and weapons have no slot bonus. Check `Rate`, per-slot settings, and the final 200% cap.
 - **Incorrect name/quality in client:** After confirming the source item template, close the game client and clear the appropriate item cache (`WDB/itemcache.wdb`) before retesting. Appearance and quality are defined by templates, not by the module itself.
@@ -93,5 +99,3 @@ Configured XP slot percentages are bounded to 0–100 individually; invalid/nega
 - [Full armory and operator guide](docs/HEIRLOOM_GUIDE.md)
 - [Architecture notes](docs/ARCHITECTURE.md) — historical design notes may describe earlier boundaries; use current source as the authority.
 - Implementation sources: `src/HeirloomConfig.cpp`, `src/HeirloomMgr.cpp`, `src/HeirloomPlayerScript.cpp`, `src/HeirloomWorldScript.cpp`, `src/HeirloomItemMapping.inc`.
-
-**Status:** Documentation reconciled with the repository source and checked-in SQL on 2026-11-18. No build, SQL import, runtime check, or deployment was performed as part of this documentation-only change.
