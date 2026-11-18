@@ -22,6 +22,14 @@ namespace HeirloomFormula
         if (!proto)
             return HEIRLOOM_MIN_LEVEL;
 
+        // Level 1-60 dynamic morphing heirlooms (900000 - 916300) already have exact stats in template
+        if (proto->ItemId >= 900000 && proto->ItemId <= 916300)
+            return static_cast<uint8>(std::min<uint32>(proto->ItemLevel > 0 ? proto->ItemLevel : 1, 60));
+
+        // Custom heirloom items (990000 - 992999) have explicit Level 1 base
+        if (proto->ItemId >= 990000 && proto->ItemId <= 992999)
+            return HEIRLOOM_MIN_LEVEL;
+
         if (proto->ItemLevel > 0)
             return static_cast<uint8>(std::min<uint32>(proto->ItemLevel, 60));
 
@@ -45,8 +53,8 @@ namespace HeirloomFormula
         if (!std::isfinite(r) || r <= 0.0)
             return 1.0;
 
-        // Clamp to prevent overflow or extreme numbers
-        return std::clamp(r, 1.0, 15.0);
+        // Clamp to prevent overflow or extreme numbers while allowing lower-level scaling
+        return std::clamp(r, 0.05, 15.0);
     }
 
     int32 ScaleStat(int32 baseStat, double ratio, float multiplier)

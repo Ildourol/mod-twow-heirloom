@@ -70,9 +70,9 @@ Heirloom.BonusXP.ChestPercent = 10.0
 #
 # Heirloom.BonusXP.TrinketPercent
 #     Description: Bonus experience percentage granted by an equipped heirloom trinket.
-#     Default:     5.0 (5% each)
+#     Default:     0.0 (0% - WotLK authentic behavior)
 #
-Heirloom.BonusXP.TrinketPercent = 5.0
+Heirloom.BonusXP.TrinketPercent = 0.0
 
 #
 # Heirloom.BonusXP.RingPercent
@@ -130,10 +130,10 @@ Heirloom.ItemIds = "default"
 #
 # Heirloom.Announce.Enable
 #     Description: Sends a system notification to the player when heirloom bonus experience is awarded.
-#     Default:     0 (Disabled)
-#                  1 (Enabled)
+#     Default:     1 (Enabled)
+#                  0 (Disabled)
 #
-Heirloom.Announce.Enable = 0
+Heirloom.Announce.Enable = 1
 
 #
 # Heirloom.Debug.Enable

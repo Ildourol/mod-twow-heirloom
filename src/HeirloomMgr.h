@@ -31,7 +31,9 @@ public:
     void RecalculatePlayerHeirlooms(Player* player, bool force = false);
     void EnsureHeirloomDurability(Player* player, Item* item, uint8 slot);
     void CheckAndApplyArmorMorph(Player* player, uint8 oldLevel, uint8 newLevel);
+    void AdaptAllPlayerHeirlooms(Player* player);
     static uint32 GetMorphedItemId(uint32 entry, uint8 playerClass, bool toHighTier);
+    static uint32 GetScaledHeirloomEntry(uint32 currentEntry, uint8 targetLevel);
 
     [[nodiscard]] float CalculatePlayerBonusXPPercent(Player* player) const;
 
