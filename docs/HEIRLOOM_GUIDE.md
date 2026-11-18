@@ -1,147 +1,158 @@
-# Heirloom Module — Armory and Operator Guide
+# Heirloom Module — Complete Armory & Operator Guide
 
-A comprehensive manual and quick-reference armory for **mod-twow-heirloom** on Turtle WoW (1.18.1 / 1.12.1).
-
-The full item catalog of **9,720 item templates** across **162 archetypes** is bundled directly in `data/sql/world/0001_custom_heirloom_items.sql`, with capital curators in `data/sql/world/0002_heirloom_vendor_npc.sql`.
+A comprehensive technical manual and quick-reference armory guide for **mod-twow-heirloom** on Turtle WoW (client 1.12.1 / 1.18.1).
 
 ---
 
-## 1. How Heirloom Item IDs Work
+## 1. Core Principles & Scaling Architecture
 
-Every heirloom archetype has a **Family Base ID** divisible by 100 in the range `900000–916100`. The level-specific item template for any character of level `L` (1 to 60) is mathematically calculated as:
-
-$$\text{Item Entry} = \text{Family Base} + \text{clamp}(\text{characterLevel}, 1, 60)$$
-
-### Scaling Examples:
-| Archetype Name | Role | Family Base | At Level 1 | At Level 20 | At Level 40 | At Level 60 |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Guardian Field Plate Helmet** | Tank | `900000` | `900001` | `900020` | `900040` | `900060` |
-| **Blessed Field Plate Armor** | Healer | `901000` | `901001` | `901020` | `901040` | `901060` |
-| **Vindicator Field Plate Boots** | DPS | `902300` | `902301` | `902320` | `902340` | `902360` |
-| **Guardian Banded Pauldrons** | Tank (+10% XP) | `902500` | `902501` | `902520` | `902540` | `902560` |
-| **Vindicator Blackened Defias Armor** | DPS (+10% XP) | `906600` | `906601` | `906620` | `906640` | `906660` |
-| **Vindicator Cruel Barb** | DPS (1H Sword) | `911300` | `911301` | `911320` | `911340` | `911360` |
-| **Guardian Whirlwind Sword** | Tank (2H Sword) | `911400` | `911401` | `911420` | `911440` | `911460` |
-| **Vindicator Ravager** | DPS (2H Axe) | `912200` | `912201` | `912220` | `912240` | `912260` |
-| **Guardian Gryphonwing Long Bow** | Tank/DPS (Bow) | `913800` | `913801` | `913820` | `913840` | `913860` |
-
-> [!TIP]
-> **Spawning Items with `.additem`**:
-> To spawn an heirloom for a specific level, take the Family Base and add the desired level.
-> Example: For a Level 35 character to receive the Vindicator Banded Helm, use:
-> ```text
-> .additem 904035
-> ```
+All 162 heirloom pieces share the standard heirloom invariants:
+- **Quality = 5 (Legendary Orange font)** in tooltips, inventory bags, and inspection frames.
+- **Bonding = 6 (Bind to Account)** — recognized for account-bound equipment auditing.
+- **MaxDurability = 0 / Durability Exemption** — immune to durability loss, zero repair costs forever.
+- **Dynamic 1–60 Level Scaling**: The module maps 162 archetype families across 60 levels (9,720 templates in `0001_custom_heirloom_items.sql`). Every single level gained dynamically increases item stats, armor, attack power, spell power, and weapon damage.
+- **Standard Authentic WoW Armor Invariants**:
+  - **Plate is Plate**: Requires Level 40 and Plate Mail armor proficiency (Warriors & Paladins).
+  - **Mail is Mail**: Wearable from Level 1 (Warriors, Paladins, Hunters, Shamans).
+  - **Leather is Leather**: Wearable from Level 1 (Rogues, Druids, Hunters, Shamans).
+  - **Cloth is Cloth**: Wearable from Level 1 (Mages, Priests, Warlocks).
+  - *No artificial armor morphing at level 40.* Gear strictly maintains authentic World of Warcraft class proficiencies.
+- **No Meta Suffixes**: Items do not use ugly meta suffixes like `(DPS)`, `(Healer)`, or `(Tank)`. Instead, they use authentic classic prefixes:
+  - **Guardian**: Tank specialization (Maximized Stamina, Strength/Agility, Defense, and Armor).
+  - **Blessed**: Healer specialization (Maximized Intellect, Spirit, and Healing/Spell Power).
+  - **Vindicator**: DPS specialization (Maximized Attack Power, Strength/Agility, Critical Strike, or Spell Damage).
 
 ---
 
-## 2. Dynamic Vendor & Automatic Adaptation
+## 2. In-Game Vendor Locations (Capital City Dual Curators)
 
-1. **Dynamic Level Vendor Inventory**:
-   - Curators sell level-1 base items in `npc_vendor`.
-   - When a player right-clicks an Heirloom Curator, `OnGossipHello` detects the player's level and dynamically updates the vendor list to present exact level-matched templates for their level.
-   - All heirloom pieces cost **0 copper (100% free)**.
-2. **Automatic Inventory & Bag Adaptation**:
-   - When a player levels up or logs in, `HeirloomMgr::AdaptAllPlayerHeirlooms` audits all equipped items, backpack slots, and bag containers, seamlessly upgrading heirlooms from `base + oldLevel` to `base + newLevel`.
-3. **Durability Exemption**:
-   - All custom heirloom templates are configured with `MaxDurability = 0`, making them naturally immune to durability loss and repair costs forever.
+All heirlooms are available for purchase for **0 copper (100% free)** from race-appropriate Curators in the Alliance and Horde capital cities:
 
----
+### A. Stormwind City (Trade District Bank — Alliance)
+- **Curator of Antiquities (Armor & Jewelry)**: `Kaelen Dawnbrow` (Entry `2000201` / GUID `3000201`)
+  - **Location**: Stormwind Bank interior hall (`Map 0`, `X: -8925.25`, `Y: 632.63`, `Z: 99.52`, `O: 5.30`).
+  - **Stock**: 111 Armor pieces (Plate, Mail, Leather, Cloth sets), Cloaks, Rings, and Trinkets.
+- **Master of Weapons (Weapons, Ranged & Shields)**: `Branden Stormforged` (Entry `2000221` / GUID `3000221`)
+  - **Location**: Stormwind Bank interior hall (`Map 0`, `X: -8924.00`, `Y: 634.20`, `Z: 99.52`, `O: 5.29`).
+  - **Stock**: 51 Weapons, Ranged weapons, Shields, and Off-hands.
 
-## 3. Authentic WoW Armor Invariants (No Morphing)
+### B. Orgrimmar (Valley of Strength Bank — Horde)
+- **Curator of Antiquities (Armor & Jewelry)**: `Krag'jin` (Entry `2000204` / GUID `3000204`)
+  - **Location**: Orgrimmar Bank interior, next to the banker counter (`Map 1`, `X: 1627.50`, `Y: -4370.20`, `Z: 11.81`, `O: 0.45`).
+  - **Stock**: 111 Armor pieces (Plate, Mail, Leather, Cloth sets), Cloaks, Rings, and Trinkets.
+- **Master of Weapons (Weapons, Ranged & Shields)**: `Gorrok Warsong` (Entry `2000224` / GUID `3000224`)
+  - **Location**: Orgrimmar Bank interior, standing beside Krag'jin (`Map 1`, `X: 1629.00`, `Y: -4368.50`, `Z: 11.81`, `O: 0.45`).
+  - **Stock**: 51 Weapons, Ranged weapons, Shields, and Off-hands.
 
-Gear adheres strictly to standard World of Warcraft armor mechanics:
-- **Plate is Plate**: Requires character level 40 and the Plate Mail armor skill. Wearable by Warriors and Paladins. Plate does not morph down to Mail.
-- **Mail is Mail**: Wearable from level 1 by Warriors and Paladins, and from level 40 by Hunters and Shamans. Mail does not morph into Plate.
-- **Leather is Leather**: Wearable from level 1 by Druids, Rogues, Hunters, Shamans, Paladins, and Warriors.
-- **Cloth is Cloth**: Wearable from level 1 by all classes.
-
----
-
-## 4. Complete Armory Directory
-
-### A. Plate Armor — Field Plate Collection (24 Archetypes)
-*Sold by Curator of Antiquities*
-
-| Slot | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) | XP Bonus |
-| :--- | :---: | :---: | :---: | :---: |
-| **Head** | `900000` | `900800` | `901600` | — |
-| **Shoulders** | `900100` | `900900` | `901700` | **+10% XP** |
-| **Chest** | `900200` | `901000` | `901800` | **+10% XP** |
-| **Wrists** | `900300` | `901100` | `901900` | — |
-| **Hands** | `900400` | `901200` | `902000` | — |
-| **Waist** | `900500` | `901300` | `902100` | — |
-| **Legs** | `900600` | `901400` | `902200` | — |
-| **Feet** | `900700` | `901500` | `902300` | — |
+> **Dynamic Level-Matched Stock**: When a player interacts with any curator, `OnGossipHello` detects the character's exact level (1–60) and dynamically renders the vendor stock with the exact level-matching items!
 
 ---
 
-### B. Mail Armor — Banded Mail Collection (24 Archetypes)
-*Sold by Curator of Antiquities*
+## 3. How Item IDs Work
 
-| Slot | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) | XP Bonus |
-| :--- | :---: | :---: | :---: | :---: |
-| **Head** | `902400` | `903200` | `904000` | — |
-| **Shoulders** | `902500` | `903300` | `904100` | **+10% XP** |
-| **Chest** | `902600` | `903400` | `904200` | **+10% XP** |
-| **Wrists** | `902700` | `903500` | `904300` | — |
-| **Hands** | `902800` | `903600` | `904400` | — |
-| **Waist** | `902900` | `903700` | `904500` | — |
-| **Legs** | `903000` | `903800` | `904600` | — |
-| **Feet** | `903100` | `903900` | `904700` | — |
+Each of the 162 heirloom pieces has a **Family Base ID** divisible by 100. The item template for a character of level `L` (1 to 60) is:
+```text
+Item Entry = FamilyBase + clamp(characterLevel, 1, 60)
+```
 
----
+For example:
+- **Guardian Field Plate Helmet** (Family Base `900000`):
+  - At level 1: `900001` (`.additem 900001`)
+  - At level 20: `900020` (`.additem 900020`)
+  - At level 40: `900040` (`.additem 900040`)
+  - At level 60: `900060` (`.additem 900060`)
+- **Vindicator Blackened Defias Armor** (Family Base `906600`):
+  - At level 1: `906601` (`.additem 906601`)
+  - At level 60: `906660` (`.additem 906660`)
 
-### C. Leather Armor — Blackened Defias Collection (24 Archetypes)
-*Sold by Curator of Antiquities*
-
-| Slot | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) | XP Bonus |
-| :--- | :---: | :---: | :---: | :---: |
-| **Head** (Red Defias Mask) | `904800` | `905600` | `906400` | — |
-| **Shoulders** (Bandit Shoulders) | `904900` | `905700` | `906500` | **+10% XP** |
-| **Chest** (Blackened Defias Armor) | `905000` | `905800` | `906600` | **+10% XP** |
-| **Wrists** (Bandit Bracers) | `905100` | `905900` | `906700` | — |
-| **Hands** (Blackened Defias Gloves) | `905200` | `906000` | `906800` | — |
-| **Waist** (Blackened Defias Belt) | `905300` | `906100` | `906900` | — |
-| **Legs** (Blackened Defias Leggings) | `905400` | `906200` | `907000` | — |
-| **Feet** (Blackened Defias Boots) | `905500` | `906300` | `907100` | — |
+As the character levels up, any heirloom equipped or stored in the character's bags automatically increments its ID to match the new level.
 
 ---
 
-### D. Cloth Armor — Mystic's Collection (24 Archetypes)
-*Sold by Curator of Antiquities*
+## 4. Complete Armor & Accessory Catalog (111 Items)
 
-| Slot | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) | XP Bonus |
-| :--- | :---: | :---: | :---: | :---: |
-| **Head** (Shadow Hood) | `907200` | `908000` | `908800` | — |
-| **Shoulders** (Mystic's Shoulder Pads) | `907300` | `908100` | `908900` | **+10% XP** |
-| **Chest** (Mystic's Robe) | `907400` | `908200` | `909000` | **+10% XP** |
-| **Wrists** (Mystic's Bracelets) | `907500` | `908300` | `909100` | — |
-| **Hands** (Mystic's Gloves) | `907600` | `908400` | `909200` | — |
-| **Waist** (Mystic's Belt) | `907700` | `908500` | `909300` | — |
-| **Legs** (Mystic's Woolies) | `907800` | `908600` | `909400` | — |
-| **Feet** (Mystic's Slippers) | `907900` | `908700` | `909500` | — |
+### A. Plate Armor — Field Plate Collection (8 Pieces × 3 Roles)
+*Visual Model: Classic Field Plate set*
 
----
-
-### E. Cloaks & Jewelry (15 Archetypes)
-*Sold by Curator of Antiquities*
-
-| Slot | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) | XP Bonus |
-| :--- | :---: | :---: | :---: | :---: |
-| **Back** (Drape of Antiquity) | `909600` | `909700` | `909800` | — |
-| **Finger 1** (Signet of the Ancestor) | `909900` | `910000` | `910100` | **+5% XP** |
-| **Finger 2** (Band of the Paragon) | `910200` | `910300` | `910400` | **+5% XP** |
-| **Trinket 1** (Insignia of the Vanguard) | `910500` | `910600` | `910700` | — |
-| **Trinket 2** (Talisman of Resolve) | `910800` | `910900` | `911000` | — |
+| Slot | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
+| :--- | :--- | :--- | :--- |
+| **Head** | `900000` (*Guardian Field Plate Helmet*) | `900800` (*Blessed Field Plate Helmet*) | `901600` (*Vindicator Field Plate Helmet*) |
+| **Shoulders** (+10% XP) | `900100` (*Guardian Field Plate Pauldrons*) | `900900` (*Blessed Field Plate Pauldrons*) | `901700` (*Vindicator Field Plate Pauldrons*) |
+| **Chest** (+10% XP) | `900200` (*Guardian Field Plate Armor*) | `901000` (*Blessed Field Plate Armor*) | `901800` (*Vindicator Field Plate Armor*) |
+| **Wrists** | `900300` (*Guardian Field Plate Vambraces*) | `901100` (*Blessed Field Plate Vambraces*) | `901900` (*Vindicator Field Plate Vambraces*) |
+| **Hands** | `900400` (*Guardian Field Plate Gauntlets*) | `901200` (*Blessed Field Plate Gauntlets*) | `902000` (*Vindicator Field Plate Gauntlets*) |
+| **Waist** | `900500` (*Guardian Field Plate Girdle*) | `901300` (*Blessed Field Plate Girdle*) | `902100` (*Vindicator Field Plate Girdle*) |
+| **Legs** | `900600` (*Guardian Field Plate Leggings*) | `901400` (*Blessed Field Plate Leggings*) | `902200` (*Vindicator Field Plate Leggings*) |
+| **Feet** | `900700` (*Guardian Field Plate Boots*) | `901500` (*Blessed Field Plate Boots*) | `902300` (*Vindicator Field Plate Boots*) |
 
 ---
 
-### F. Weapons, Ranged, Shields & Off-Hands (51 Archetypes)
-*Sold by Master of Weapons*
+### B. Mail Armor — Banded Mail Collection (8 Pieces × 3 Roles)
+*Visual Model: Classic Banded Mail set*
 
-| Weapon Type | Base Weapon Model | Tank (Guardian) | Healer (Blessed) | DPS (Vindicator) |
-| :--- | :--- | :---: | :---: | :---: |
+| Slot | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
+| :--- | :--- | :--- | :--- |
+| **Head** | `902400` (*Guardian Banded Helm*) | `903200` (*Blessed Banded Helm*) | `904000` (*Vindicator Banded Helm*) |
+| **Shoulders** (+10% XP) | `902500` (*Guardian Banded Pauldrons*) | `903300` (*Blessed Banded Pauldrons*) | `904100` (*Vindicator Banded Pauldrons*) |
+| **Chest** (+10% XP) | `902600` (*Guardian Banded Armor*) | `903400` (*Blessed Banded Armor*) | `904200` (*Vindicator Banded Armor*) |
+| **Wrists** | `902700` (*Guardian Banded Bracers*) | `903500` (*Blessed Banded Bracers*) | `904300` (*Vindicator Banded Bracers*) |
+| **Hands** | `902800` (*Guardian Banded Gauntlets*) | `903600` (*Blessed Banded Gauntlets*) | `904400` (*Vindicator Banded Gauntlets*) |
+| **Waist** | `902900` (*Guardian Banded Girdle*) | `903700` (*Blessed Banded Girdle*) | `904500` (*Vindicator Banded Girdle*) |
+| **Legs** | `903000` (*Guardian Banded Leggings*) | `903800` (*Blessed Banded Leggings*) | `904600` (*Vindicator Banded Leggings*) |
+| **Feet** | `903100` (*Guardian Banded Boots*) | `903900` (*Blessed Banded Boots*) | `904700` (*Vindicator Banded Boots*) |
+
+---
+
+### C. Leather Armor — Blackened Defias Collection (8 Pieces × 3 Roles)
+*Visual Model: Classic Blackened Defias set & Bandit pieces*
+
+| Slot | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
+| :--- | :--- | :--- | :--- |
+| **Head** | `904800` (*Guardian Red Defias Mask*) | `905600` (*Blessed Red Defias Mask*) | `906400` (*Vindicator Red Defias Mask*) |
+| **Shoulders** (+10% XP) | `904900` (*Guardian Bandit Shoulders*) | `905700` (*Blessed Bandit Shoulders*) | `906500` (*Vindicator Bandit Shoulders*) |
+| **Chest** (+10% XP) | `905000` (*Guardian Blackened Defias Armor*) | `905800` (*Blessed Blackened Defias Armor*) | `906600` (*Vindicator Blackened Defias Armor*) |
+| **Wrists** | `905100` (*Guardian Bandit Bracers*) | `905900` (*Blessed Bandit Bracers*) | `906700` (*Vindicator Bandit Bracers*) |
+| **Hands** | `905200` (*Guardian Blackened Defias Gloves*) | `906000` (*Blessed Blackened Defias Gloves*) | `906800` (*Vindicator Blackened Defias Gloves*) |
+| **Waist** | `905300` (*Guardian Blackened Defias Belt*) | `906100` (*Blessed Blackened Defias Belt*) | `906900` (*Vindicator Blackened Defias Belt*) |
+| **Legs** | `905400` (*Guardian Blackened Defias Leggings*) | `906200` (*Blessed Blackened Defias Leggings*) | `907000` (*Vindicator Blackened Defias Leggings*) |
+| **Feet** | `905500` (*Guardian Blackened Defias Boots*) | `906300` (*Blessed Blackened Defias Boots*) | `907100` (*Vindicator Blackened Defias Boots*) |
+
+---
+
+### D. Cloth Armor — Mystic's Collection (8 Pieces × 3 Roles)
+*Visual Model: Classic Mystic's set & Shadow Hood*
+
+| Slot | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
+| :--- | :--- | :--- | :--- |
+| **Head** | `907200` (*Guardian Shadow Hood*) | `908000` (*Blessed Shadow Hood*) | `908800` (*Vindicator Shadow Hood*) |
+| **Shoulders** (+10% XP) | `907300` (*Guardian Mystic's Shoulder Pads*) | `908100` (*Blessed Mystic's Shoulder Pads*) | `908900` (*Vindicator Mystic's Shoulder Pads*) |
+| **Chest** (+10% XP) | `907400` (*Guardian Mystic's Robe*) | `908200` (*Blessed Mystic's Robe*) | `909000` (*Vindicator Mystic's Robe*) |
+| **Wrists** | `907500` (*Guardian Mystic's Bracelets*) | `908300` (*Blessed Mystic's Bracelets*) | `909100` (*Vindicator Mystic's Bracelets*) |
+| **Hands** | `907600` (*Guardian Mystic's Gloves*) | `908400` (*Blessed Mystic's Gloves*) | `909200` (*Vindicator Mystic's Gloves*) |
+| **Waist** | `907700` (*Guardian Mystic's Belt*) | `908500` (*Blessed Mystic's Belt*) | `909300` (*Vindicator Mystic's Belt*) |
+| **Legs** | `907800` (*Guardian Mystic's Woolies*) | `908600` (*Blessed Mystic's Woolies*) | `909400` (*Vindicator Mystic's Woolies*) |
+| **Feet** | `907900` (*Guardian Mystic's Slippers*) | `908700` (*Blessed Mystic's Slippers*) | `909500` (*Vindicator Mystic's Slippers*) |
+
+---
+
+### E. Jewelry & Accessories (5 Slots × 3 Roles)
+
+| Slot | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
+| :--- | :--- | :--- | :--- |
+| **Back (Cloak)** | `909600` (*Guardian Drape of Antiquity*) | `909700` (*Blessed Drape of Antiquity*) | `909800` (*Vindicator Drape of Antiquity*) |
+| **Finger (Ring 1)** (+5% XP) | `909900` (*Guardian Signet of the Ancestor*) | `910000` (*Blessed Signet of the Ancestor*) | `910100` (*Vindicator Signet of the Ancestor*) |
+| **Finger (Ring 2)** (+5% XP) | `910200` (*Guardian Band of the Paragon*) | `910300` (*Blessed Band of the Paragon*) | `910400` (*Vindicator Band of the Paragon*) |
+| **Trinket 1** | `910500` (*Guardian Insignia of the Vanguard*) | `910600` (*Blessed Insignia of the Vanguard*) | `910700` (*Vindicator Insignia of the Vanguard*) |
+| **Trinket 2** | `910800` (*Guardian Talisman of Resolve*) | `910900` (*Blessed Talisman of Resolve*) | `911000` (*Vindicator Talisman of Resolve*) |
+
+---
+
+## 5. Complete Weapons, Ranged & Shields Catalog (51 Items)
+
+Sold exclusively by the **Master of Weapons** in Stormwind Bank and Orgrimmar Bank:
+
+| Weapon Type | Iconic Visual Reference | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
+| :--- | :--- | :--- | :--- | :--- |
 | **1H Sword** | Cruel Barb | `911100` | `911200` | `911300` |
 | **2H Sword** | Whirlwind Sword | `911400` | `911500` | `911600` |
 | **1H Axe** | Butcher's Cleaver | `911700` | `911800` | `911900` |
@@ -151,55 +162,19 @@ Gear adheres strictly to standard World of Warcraft armor mechanics:
 | **Dagger** | Black Menace | `912900` | `913000` | `913100` |
 | **Fist Weapon** | Thekal's Grasp | `913200` | `913300` | `913400` |
 | **Polearm** | Grimlok's Charge | `913500` | `913600` | `913700` |
+| **Staff** | Illusionary Rod | `915300` | `915400` | `915500` |
 | **Bow** | Gryphonwing Long Bow | `913800` | `913900` | `914000` |
 | **Gun** | Precisely Calibrated Boomstick | `914100` | `914200` | `914300` |
 | **Crossbow** | Blackcrow | `914400` | `914500` | `914600` |
 | **Wand** | Bonecreeper Stylus | `914700` | `914800` | `914900` |
-| **Thrown** | Deadly Throwing Axe | `915000` | `915100` | `915200` |
-| **Staff** | Illusionary Rod | `915300` | `915400` | `915500` |
-| **Caster Off-Hand** | Orb of Lorica | `915600` | `915700` | `915800` |
+| **Thrown Weapon** | Deadly Throwing Axe | `915000` | `915100` | `915200` |
 | **Shield** | Aegis of the Scarlet Commander | `915900` | `916000` | `916100` |
+| **Caster Off-Hand** | Orb of Lorica | `915600` | `915700` | `915800` |
 
 ---
 
-## 5. Capital City Vendor Directory
+## 6. Coexistence with Vanilla Items (No Overwrites)
 
-All heirlooms are sold exclusively by dedicated capital city NPCs in Stormwind and Orgrimmar Banks:
-
-| Location | Vendor Title | NPC Name | Entry | GUID | Faction | Exact Coordinates |
-| :--- | :--- | :--- | :---: | :---: | :---: | :--- |
-| **Stormwind Bank** (Alliance) | Curator of Antiquities (Armor) | `Kaelen Dawnbrow` | `2000201` | `3000201` | `12` | `X: -8925.25, Y: 632.63, Z: 99.52, O: 5.30` |
-| **Stormwind Bank** (Alliance) | Master of Weapons (Weapons) | `Branden Stormforged` | `2000221` | `3000221` | `12` | `X: -8924.00, Y: 634.20, Z: 99.52, O: 5.29` |
-| **Orgrimmar Bank** (Horde) | Curator of Antiquities (Armor) | `Krag'jin` | `2000204` | `3000204` | `29` | `X: 1627.50, Y: -4370.20, Z: 11.81, O: 0.45` |
-| **Orgrimmar Bank** (Horde) | Master of Weapons (Weapons) | `Gorrok Warsong` | `2000224` | `3000224` | `29` | `X: 1629.00, Y: -4368.50, Z: 11.81, O: 0.45` |
-
-### Interaction Flags & Factions
-- **`npc_flags = 5`**: Combines `UNIT_NPC_FLAG_GOSSIP` (`1`) and `UNIT_NPC_FLAG_VENDOR` (`4`), ensuring the client immediately opens the vendor store without throwing `"That vendor doesn't like you"`.
-- **Factions**:
-  - Stormwind curators use faction `12` (`friendly_mask = 2`, friendly to all Alliance races).
-  - Orgrimmar curators use faction `29` (`friendly_mask = 4`, friendly to all Horde races).
-
----
-
-## 6. Vanilla Items vs Heirloom Items (FAQ)
-
-> [!NOTE]
-> **Does `0001_custom_heirloom_items.sql` include vanilla items like *Onyxia Blood Talisman* or *Beastmaster's Mantle*?**
->
-> **No.** `0001_custom_heirloom_items.sql` contains **exclusively** custom heirloom templates in the designated ID range `900001` through `916160` (9,720 templates).
->
-> Vanilla items such as:
-> - **Onyxia Blood Talisman** (`18406`, Epic Trinket, Bind on Pickup)
-> - **Beastmaster's Mantle** (`22016`, Epic Dungeon Set 2 Shoulders, Bind on Pickup)
->
-> are default vanilla game items residing in the core `tw_world.item_template` table. They are **not** present in `0001_custom_heirloom_items.sql`, nor are they modified by `mod-twow-heirloom`.
-
----
-
-## 7. Client Cache Clearing
-
-If an heirloom appears in inventory or chat as a plain white item, or displays outdated stats from a previous session:
-1. Completely close the World of Warcraft client (`WoW.exe`).
-2. Navigate to your WoW game client directory.
-3. Delete the `WDB` folder (specifically `WDB/itemcache.wdb`).
-4. Re-launch the client and log in. The client will fetch the fresh item template data directly from the server, correctly rendering the **Legendary Orange** font, full scaling stats, and lore flavor text.
+- `0001_custom_heirloom_items.sql` contains exclusively custom items in the ID range `900001` through `916160`.
+- **Vanilla items remain 100% untouched**: Vanilla epics and dungeon set pieces (such as *Onyxia Blood Talisman* `18406`, *Beastmaster's Mantle* `22016`, or *Darkmantle Spaulders* `22008`) are NOT included, altered, or overwritten in the heirloom SQL.
+- **Client Cache Notice**: If an item name appears white or stats do not refresh immediately in your WoW client, exit the game, delete `WDB/itemcache.wdb`, and log back in.
