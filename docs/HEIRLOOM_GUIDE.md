@@ -38,10 +38,10 @@ All heirlooms are available for purchase for **0 copper (100% free)** from race-
 
 ### B. Orgrimmar (Valley of Strength Bank — Horde)
 - **Curator of Antiquities (Armor & Jewelry)**: `Krag'jin` (Entry `2000204` / GUID `3000204`)
-  - **Location**: Orgrimmar Bank interior, next to the banker counter (`Map 1`, `X: 1627.50`, `Y: -4370.20`, `Z: 11.81`, `O: 0.45`).
+  - **Location**: Orgrimmar Bank interior, next to the banker counter (`Map 1`, `X: 1627.50`, `Y: -4370.20`, `Z: 11.81`, `O: 3.59`).
   - **Stock**: 111 Armor pieces (Plate, Mail, Leather, Cloth sets), Cloaks, Rings, and Trinkets.
 - **Master of Weapons (Weapons, Ranged & Shields)**: `Gorrok Warsong` (Entry `2000224` / GUID `3000224`)
-  - **Location**: Orgrimmar Bank interior, standing beside Krag'jin (`Map 1`, `X: 1629.00`, `Y: -4368.50`, `Z: 11.81`, `O: 0.45`).
+  - **Location**: Orgrimmar Bank interior, standing beside Krag'jin (`Map 1`, `X: 1629.00`, `Y: -4368.50`, `Z: 11.81`, `O: 3.59`).
   - **Stock**: 51 Weapons, Ranged weapons, Shields, and Off-hands.
 
 > **Dynamic Level-Matched Stock**: When a player interacts with any curator, `OnGossipHello` detects the character's exact level (1–60) and dynamically renders the vendor stock with the exact level-matching items!
