@@ -7,32 +7,86 @@
 #include "HeirloomMgr.h"
 #include "HeirloomArmorSets.h"
 #include "HeirloomCuratorMail.h"
+#include "HeirloomConfig.h"
 #include "ScriptObjects.h"
 #include "Objects/Item.h"
+#include "Objects/Player.h"
+
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <memory>
+#include <mutex>
+#include <unordered_map>
 
 namespace
 {
+    constexpr uint32 EquipmentCheckMs = 500;
+    constexpr uint32 DurabilityCheckMs = 1000;
+    constexpr uint32 ReconcileMs = 5000;
+
+    uint64 MaintenanceTimeMs()
+    {
+        auto elapsed = std::chrono::steady_clock::now().time_since_epoch();
+        return static_cast<uint64>(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count());
+    }
+
+    struct MaintenanceState
+    {
+        HeirloomArmorSets::EquippedEntries equipment{};
+        uint64 lastCheck = 0;
+        uint64 lastDurability = 0;
+        uint64 lastReconcile = 0;
+        uint8 tier = 0;
+        bool enabled = false;
+        bool scaling = false;
+        bool alive = false;
+    };
+
+    struct MaintenanceShard
+    {
+        std::mutex mutex;
+        std::unordered_map<uint32, std::shared_ptr<MaintenanceState>> players;
+    };
+
     class ModTwowHeirloomPlayerScript : public PlayerScript
     {
     public:
         ModTwowHeirloomPlayerScript()
             : PlayerScript("mod-twow-heirloom_player",
                 { PLAYERHOOK_ON_LOGIN, PLAYERHOOK_ON_LOGOUT, PLAYERHOOK_ON_LEVEL_CHANGED,
-                  PLAYERHOOK_ON_GIVE_EXP, PLAYERHOOK_ON_LOOT_ITEM, PLAYERHOOK_ON_UPDATE })
+                  PLAYERHOOK_ON_GIVE_EXP, PLAYERHOOK_ON_LOOT_ITEM, PLAYERHOOK_ON_PLAYER_JUST_DIED,
+                  PLAYERHOOK_ON_UPDATE })
         {
         }
 
         void OnLogin(Player* player) override
         {
-            sHeirloomMgr.HandlePlayerLogin(player);
+            sHeirloomMgr.AdaptAllPlayerHeirlooms(player, true);
             HeirloomArmorSets::Refresh(player);
+
+            auto state = GetState(player->GetGUIDLow(), true);
+            uint64 now = MaintenanceTimeMs();
+            state->lastCheck = now;
+            state->lastDurability = now;
+            state->lastReconcile = now;
+            state->tier = HeirloomMgr::GetScaledLevel(player);
+            state->enabled = sHeirloomConfig.IsEnabled();
+            state->scaling = sHeirloomConfig.IsScalingEnabled();
+            state->alive = player->IsAlive();
+            state->equipment = state->enabled && state->alive ? HeirloomArmorSets::GetEquippedEntries(player)
+                                                              : HeirloomArmorSets::EquippedEntries{};
+
             HeirloomCuratorMail::Notify(player);
         }
 
         void OnLogout(Player* player) override
         {
             HeirloomArmorSets::Clear(player);
-            sHeirloomMgr.HandlePlayerLogout(player);
+            uint32 guid = player->GetGUIDLow();
+            MaintenanceShard& shard = GetShard(guid);
+            std::lock_guard<std::mutex> lock(shard.mutex);
+            shard.players.erase(guid);
         }
 
         void OnLevelChanged(Player* player, uint8 oldLevel) override
@@ -53,11 +107,79 @@ namespace
                 sHeirloomMgr.AdaptAllPlayerHeirlooms(player);
         }
 
+        void OnPlayerJustDied(Player* player) override
+        {
+            HeirloomArmorSets::Clear(player);
+            if (auto state = GetState(player->GetGUIDLow(), false))
+                state->alive = false;
+        }
+
         void OnUpdate(Player* player, uint32 diff) override
         {
-            sHeirloomMgr.HandlePlayerUpdate(player, diff);
-            HeirloomArmorSets::Refresh(player);
+            uint32 guid = player->GetGUIDLow();
+            uint64 now = MaintenanceTimeMs();
+            // Use the update interval to detect when this player's staggered phase was crossed.
+            // Most ticks return before accessing the shared registry. Recurring player
+            // events would prevent the core from skipping idle player updates.
+            if ((now + guid % EquipmentCheckMs) % EquipmentCheckMs >= diff)
+                return;
+
+            auto state = GetState(guid, true);
+            if (now - state->lastCheck < EquipmentCheckMs / 2)
+                return;
+            state->lastCheck = now;
+
+            bool enabled = sHeirloomConfig.IsEnabled();
+            bool scaling = sHeirloomConfig.IsScalingEnabled();
+            bool alive = player->IsAlive();
+            uint8 tier = HeirloomMgr::GetScaledLevel(player);
+            bool resurrected = alive && !state->alive;
+            bool tierChanged = tier != state->tier;
+            bool reconcile = now - state->lastReconcile >= ReconcileMs;
+            if (reconcile)
+                state->lastReconcile = now;
+
+            if (enabled && scaling && (reconcile || resurrected || tierChanged || !state->enabled || !state->scaling))
+                sHeirloomMgr.AdaptAllPlayerHeirlooms(player);
+
+            HeirloomArmorSets::EquippedEntries equipment{};
+            if (enabled && alive)
+                equipment = HeirloomArmorSets::GetEquippedEntries(player);
+            if (equipment != state->equipment ||
+                ((reconcile || resurrected || tierChanged || scaling != state->scaling) &&
+                 std::any_of(equipment.begin(), equipment.end(), [](uint32 entry) { return entry != 0; })))
+                HeirloomArmorSets::Refresh(player);
+
+            if (enabled && sHeirloomConfig.IsDurabilityExemptEnabled() &&
+                now - state->lastDurability >= DurabilityCheckMs)
+            {
+                state->lastDurability = now;
+                sHeirloomMgr.RestoreEquippedDurability(player);
+            }
+
+            state->equipment = equipment;
+            state->tier = tier;
+            state->enabled = enabled;
+            state->scaling = scaling;
+            state->alive = alive;
         }
+
+    private:
+        MaintenanceShard& GetShard(uint32 guid) { return m_maintenance[guid % m_maintenance.size()]; }
+
+        std::shared_ptr<MaintenanceState> GetState(uint32 guid, bool create)
+        {
+            MaintenanceShard& shard = GetShard(guid);
+            std::lock_guard<std::mutex> lock(shard.mutex);
+            auto state = shard.players.find(guid);
+            if (state != shard.players.end())
+                return state->second;
+            if (!create)
+                return {};
+            return shard.players.emplace(guid, std::make_shared<MaintenanceState>()).first->second;
+        }
+
+        std::array<MaintenanceShard, 16> m_maintenance;
     };
 }
 
