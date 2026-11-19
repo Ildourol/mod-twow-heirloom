@@ -27,9 +27,11 @@ The Heirloom Armorer also stocks six rings and six trinkets. Guardian, Blessed, 
 
 Characters receive **one Curator's Token** at each of levels **10, 20, 30, and 40** by default. Each new accessory costs one token, so four choices are available by level 40, enough for two rings and two trinkets. The armorer sends accessory tokens in their own letter. Accessories join the same account collection with their own allowance, and unlocked pieces are free for eligible alts to claim.
 
-## Armor set bonuses
+## Armor and weapon equip effects
 
-The armor curator offers eleven eight-piece sets across plate, mail, leather, and cloth. Before the native tier, each set gives cumulative bonuses for **2, 4, or 8** matching pieces. Guardian sets focus on survival, Blessed sets on healing, Vindicator sets on physical attacks, and Arcane cloth on spell damage. Each set uses the appearance of an existing Tortoise set. At heirloom tiers **47–55**, depending on the set, pieces can earn the corresponding stock set bonuses. The scaled 2-, 4-, and 8-piece bonuses still apply while no stock bonus has been earned for that family. Item stats continue to scale at every tier. See the player guide for the matching sets and their unlock tiers.
+The armor curator offers eleven matching eight-piece collections across plate, mail, leather, and cloth. Each piece works on its own. Armor and weapons gain a secondary equip stat as their item tier and slot budget grow. Guardian gear favors Stamina, Blessed gear favors Spirit, Arcane gear favors Intellect, and physical gear favors Strength or Agility. Existing role effects such as Defense, healing, spell power, and Attack Power still scale with the item.
+
+Repairable armor, shields, and weapons display durability and take ordinary durability loss, including on applicable deaths. The optional automatic repair setting is off by default.
 
 Spending all eight default armor choices on the same set completes it by level 55. Plate appears in the shop at all levels. Redeeming and equipping it require plate proficiency.
 

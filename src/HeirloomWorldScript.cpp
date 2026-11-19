@@ -5,7 +5,6 @@
 
 #include "HeirloomWorldScript.h"
 #include "HeirloomConfig.h"
-#include "HeirloomArmorSets.h"
 #include "ScriptObjects.h"
 #include "Database/DatabaseEnv.h"
 #include "Database/QueryResult.h"
@@ -160,7 +159,6 @@ namespace
             "(SELECT COUNT(*) FROM item_template WHERE entry BETWEEN 900001 AND 916160 "
             "AND MOD(entry, 100) BETWEEN 1 AND 60 AND bonding = 6) = 9720 "
             "AND (SELECT COUNT(*) FROM item_template WHERE entry IN (916301, 916302, 916303) AND bonding = 1) = 3 "
-            "AND (SELECT COUNT(*) FROM spell_template WHERE entry BETWEEN 65010 AND 65020) = 11 "
             "AND (SELECT COUNT(*) FROM creature_template WHERE entry IN (2000201, 2000204, 2000221, 2000224) "
             "AND script_name = 'npc_heirloom_vendor') = 4 "
             "AND (SELECT COUNT(DISTINCT id) FROM creature WHERE id IN (2000201, 2000204, 2000221, 2000224)) = 4 "
@@ -229,7 +227,6 @@ namespace
                 sObjectMgr.GetItemPrototype(HEIRLOOM_ARMOR_VOUCHER) &&
                 sObjectMgr.GetItemPrototype(HEIRLOOM_WEAPON_VOUCHER) &&
                 sObjectMgr.GetItemPrototype(HEIRLOOM_ACCESSORY_VOUCHER);
-            bool armorSetsLoaded = worldLoaded && HeirloomArmorSets::Initialize();
 
             if ((!worldInstalled || !characterReady) &&
                 sHeirloomConfig.IsEnabled() && sHeirloomConfig.IsAutoImportEnabled())
@@ -257,7 +254,7 @@ namespace
                 }
             }
 
-            CollectionReady = worldLoaded && armorSetsLoaded && characterReady;
+            CollectionReady = worldLoaded && characterReady;
             if (!CollectionReady && sHeirloomConfig.IsEnabled())
                 sLog.outString("[mod-twow-heirloom] Curators require the installed world data and character collection schema.");
         }

@@ -48,13 +48,13 @@ namespace
     enum class ArmorMaterial { Plate, Mail, Leather, Cloth };
     enum class ArmorRole { Bulwark, Arms, Spellcraft = Arms, Renewal };
 
-    constexpr auto ArmorSets = []()
+    constexpr auto ArmorGroups = []()
     {
         std::array<std::array<uint32, 3>, 4> families{};
-#define HEIRLOOM_ARMOR_SET(material, family, style, ...) \
+#define HEIRLOOM_ARMOR_GROUP(material, family, style) \
         families[static_cast<size_t>(ArmorMaterial::material)][static_cast<size_t>(ArmorRole::style)] = family;
-#include "HeirloomArmorSets.inc"
-#undef HEIRLOOM_ARMOR_SET
+#include "HeirloomArmorCatalog.inc"
+#undef HEIRLOOM_ARMOR_GROUP
         return families;
     }();
 
@@ -80,7 +80,7 @@ namespace
             return;
         }
 
-        for (auto const& material : ArmorSets)
+        for (auto const& material : ArmorGroups)
             for (uint32 first : material)
                 if (first)
                     for (uint32 piece = 0; piece < 8; ++piece)

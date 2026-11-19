@@ -22,15 +22,15 @@ The armorer combines the armor and accessory pools in the same merchant window. 
 
 The effective template entry is `family + clamp(characterLevel, 1, MaxLevel)`. The same level function drives curator previews, grants, and subsequent scaling. Login, level changes, loot, and periodic inventory checks update existing instances through core item and equipment APIs. Equipped items remove the previous template's modifiers and equip the new one through the core. The item template supplies its stats, armor, damage range, block, and equip aura, and the module sends that template to the client for its tooltip. Scaled items are queued for the core inventory save after their template, flags, and durability are updated. Bonus XP and durability use independent configuration.
 
-Login and level-up process scaling and set effects immediately. Heirloom loot also triggers immediate scaling. During regular updates, a staggered half-second check compares equipped heirloom armor entries and refreshes effects when the loadout, life state, or scaling changes. A five-second check reconciles mail, trade, GM grants, and missed aura changes. Durability restoration has its own one-second check and skips intact items. Diagnostic logging is off by default.
+Login, level changes, and heirloom loot trigger immediate scaling. A staggered maintenance check detects tier and life state changes. A five-second inventory reconciliation covers mail, trade, and GM grants. Optional durability restoration has its own one-second check and skips intact items. Diagnostic logging is off by default.
 
 The bundled World SQL contains all 60 tiers for 162 families. Combat values use rare item and quest reward benchmarks by slot, material, or weapon type. Shields use separate armor and block curves. Roles allocate stat points and fixed equip effects within those budgets. The balance audit records the sample and example values. The catalog also includes alternative appearances with equivalent stats for several Arcane families.
 
-## Armor set bonuses
+## Armor catalog and equipment effects
 
-Each armor set uses one module-owned passive aura with up to three native effects. The player hook counts the eight matching equipment slots and recomputes the cumulative amounts when a 2-, 4-, or 8-piece threshold is reached. Flat effects scale by template tier. Percentage effects use whole percentage points and activate at the tier declared in the set data. It refreshes the aura through the core and removes it as soon as the worn pieces cease to qualify on the next player update. Set membership uses the item family, so changing level templates preserves it. Passive auras are recomputed on login and are not saved to characters.
+`HeirloomArmorCatalog.inc` groups matching armor appearances for vendor ordering. All equip effects come from the individual item templates. The core applies the stock passive spell ranks and removes them when the item is unequipped or breaks. The clean-install rows use an empty native set ID at every tier.
 
-`src/HeirloomArmorSets.inc` supplies the curator catalog, aura IDs, and effect progression. The World SQL includes the passive spells for low tiers and the stock armor models and set IDs for higher tiers. The core applies stock set effects and the client reads the matching ItemSet.dbc records. The module keeps its scaled bonus until the core records an earned stock spell for that equipped family. This covers mixed template tiers and stock sets whose first bonus needs three pieces.
+Repairable item templates have maximum durability based on ordinary gear of the same type. The core handles damage, death penalties and repair. Tier changes preserve remaining durability in proportion to the old maximum. The optional module maintenance pass periodically restores equipped heirlooms when `Heirloom.Durability.Exempt` is enabled.
 
 ## Installation
 

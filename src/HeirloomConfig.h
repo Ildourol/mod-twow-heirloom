@@ -66,7 +66,7 @@ private:
     std::atomic<float> m_chestXPPercent{10.0f};
     std::atomic<float> m_ringXPPercent{5.0f};
 
-    std::atomic<bool> m_durabilityExempt{true};
+    std::atomic<bool> m_durabilityExempt{false};
     std::atomic<bool> m_autoImport{true};
     std::string m_sqlPath;
     std::atomic<bool> m_announceEnabled{false};

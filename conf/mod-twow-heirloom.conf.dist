@@ -126,12 +126,11 @@ Heirloom.BonusXP.RingPercent = 5.0
 
 #
 # Heirloom.Durability.Exempt
-#     Description: Audits equipped heirlooms and restores durability to prevent breakage.
-#                  Note: Authentic 100% loss prevention requires item templates with MaxDurability = 0.
-#     Default:     1 (Enabled)
-#                  0 (Disabled)
+#     Description: 0 uses normal wear and death penalties. 1 periodically repairs equipped heirlooms.
+#                  Repairable heirlooms display durability with either setting.
+#     Default:     0
 #
-Heirloom.Durability.Exempt = 1
+Heirloom.Durability.Exempt = 0
 
 #
 # Heirloom.ItemIds

@@ -16,7 +16,7 @@ The World install SQL contains all 162 heirloom families at tiers 1 through 60. 
 | Aegis of the Scarlet Commander | 39 | 1,548 armor, 23 block |
 | Bonecreeper Stylus | 60 | 64.7 DPS |
 
-Breastplate of Valor, a level-58 rare, has 657 armor and 49 primary stat points on this server. Heirloom plate chests use comparable rare plate chests as a benchmark and allocate some of the stat budget to their equip effects. The table lists individual item values.
+Breastplate of Valor, a level-58 rare, has 657 armor and 49 primary stat points on this server. Heirloom plate chests use comparable rare plate chests as a benchmark and allocate some of the stat budget to their equip effects. The table lists individual item values. Primary stat totals include the native secondary equip stat when present.
 
 ## Level curves
 
@@ -28,7 +28,11 @@ Breastplate of Valor, a level-58 rare, has 657 armor and 49 primary stat points 
 
 Guardian heavy armor, shields, and one-handed tank weapons spend part of their budget on Defense. Guardian leather and cloaks use Stamina, Agility, and armor. Vindicator armor and melee weapons use Attack Power. Physical ranged weapons use Agility and ranged Attack Power. Arcane cloth and caster arms use spell damage and healing, while Blessed gear uses healing or mana regeneration on selected bracers.
 
-Core and client data confirm the equip-spell ranks. Early tiers use primary stats until they can support a fixed equip effect. Primary stats and equip effect ranks grow monotonically by family. The audit redistributed each template's existing budget, allowing for rounding and gaps between stock spell ranks. Base armor, block, weapon damage, XP, and armor set memberships use the same values as before.
+The new secondary equip line reallocates part of each eligible item's primary-stat budget into a stock passive rank. Each tier preserves its total primary-stat points. The 150 armor and weapon families with a secondary equip line use fixed ranks confirmed against the bundled server spell data and the stock 1.18.1.7979 client Spell.dbc. The added ranks progress monotonically by family. Rings and trinkets use their own existing budgets and effects. Base armor, block, damage, XP and appearances retain their audited values.
+
+## Durability benchmarks
+
+For repairable gear, the audit took the median durability of the seven closest ordinary rare items by class, subclass, slot and target item level. Sparse groups include uncommon gear and use the same weapon subclass across hand slots if needed. Helm durability is 80 for plate, 70 for mail, 60 for leather, and 50 for cloth at tier 60. The tier-60 Blessed Field Plate chest has 135 durability, Cruel Barb has 90, and Bonecreeper Stylus has 65.
 
 ## Rare ring audit
 
