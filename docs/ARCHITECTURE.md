@@ -32,7 +32,7 @@ Each armor set uses one module-owned passive aura with up to three native effect
 
 ## Installation
 
-The core updater can import the prebuilt World and Characters SQL before loading items and scripts. The module checks the actual World data and Characters table on startup. If enabled, its fallback imports missing data and logs when a restart is needed to load the world templates. The SQL archive mirrors the two standalone install files.
+The core updater can import the prebuilt World and Characters SQL before loading items and scripts. The module checks the actual World data and Characters table on startup. If enabled, its fallback imports missing data and logs when a restart is needed to load the world templates.
 
 ## Live verification
 

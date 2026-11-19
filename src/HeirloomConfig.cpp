@@ -58,12 +58,13 @@ void HeirloomConfig::Load()
 
     m_shoulderXPPercent = clampPercent(sConfig.GetFloatDefault("Heirloom.BonusXP.ShoulderPercent", 10.0f), 10.0f);
     m_chestXPPercent    = clampPercent(sConfig.GetFloatDefault("Heirloom.BonusXP.ChestPercent", 10.0f), 10.0f);
+    m_ringXPPercent     = clampPercent(sConfig.GetFloatDefault("Heirloom.BonusXP.RingPercent", 5.0f), 5.0f);
 
     m_durabilityExempt = sConfig.GetBoolDefault("Heirloom.Durability.Exempt", true);
     m_autoImport = sConfig.GetBoolDefault("Heirloom.Database.AutoImport", true);
     m_sqlPath = sConfig.GetStringDefault("Heirloom.Database.SqlPath", "");
     m_announceEnabled = sConfig.GetBoolDefault("Heirloom.Announce.Enable", true);
-    m_debugEnabled = sConfig.GetBoolDefault("Heirloom.Debug.Enable", true);
+    m_debugEnabled = sConfig.GetBoolDefault("Heirloom.Debug.Enable", false);
 
     m_explicitHeirloomIds.clear();
     std::string idList = sConfig.GetStringDefault("Heirloom.ItemIds", "");

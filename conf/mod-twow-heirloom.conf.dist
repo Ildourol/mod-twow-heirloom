@@ -118,6 +118,13 @@ Heirloom.BonusXP.ShoulderPercent = 10.0
 Heirloom.BonusXP.ChestPercent = 10.0
 
 #
+# Heirloom.BonusXP.RingPercent
+#     Description: Bonus experience percentage granted by each equipped heirloom ring.
+#     Default:     5.0 (5% per ring)
+#
+Heirloom.BonusXP.RingPercent = 5.0
+
+#
 # Heirloom.Durability.Exempt
 #     Description: Audits equipped heirlooms and restores durability to prevent breakage.
 #                  Note: Authentic 100% loss prevention requires item templates with MaxDurability = 0.
@@ -146,10 +153,10 @@ Heirloom.Announce.Enable = 1
 #
 # Heirloom.Debug.Enable
 #     Description: Enables diagnostic logging for module operations.
-#     Default:     1 (Enabled per workspace diagnostic policy)
-#                  0 (Disabled)
+#     Default:     0 (Disabled)
+#                  1 (Enabled)
 #
-Heirloom.Debug.Enable = 1
+Heirloom.Debug.Enable = 0
 
 #
 # Heirloom.Database.AutoImport

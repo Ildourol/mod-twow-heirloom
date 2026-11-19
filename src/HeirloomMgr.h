@@ -7,8 +7,6 @@
 #define _HEIRLOOM_MGR_H
 
 #include "HeirloomCommon.h"
-#include <mutex>
-#include <unordered_map>
 
 class Player;
 class Item;
@@ -25,9 +23,7 @@ public:
     static uint32 GetCanonicalFamily(uint32 family);
     static bool HasOwnedFamily(Player* player, uint32 family);
 
-    void HandlePlayerLogin(Player* player);
-    void HandlePlayerLogout(Player* player);
-    void HandlePlayerUpdate(Player* player, uint32 diff);
+    void RestoreEquippedDurability(Player* player);
     void HandlePlayerGiveXP(Player* player, uint32& amount, Unit* victim);
     void AdaptAllPlayerHeirlooms(Player* player, bool refreshTooltips = false);
 
@@ -36,9 +32,6 @@ private:
 
     static void EnsureHeirloomDurability(Player* player, Item* item, uint8 slot);
     [[nodiscard]] float CalculatePlayerBonusXPPercent(Player* player) const;
-
-    std::mutex m_updateMutex;
-    std::unordered_map<ObjectGuid, uint32> m_updateTimers;
 };
 
 #define sHeirloomMgr HeirloomMgr::Instance()

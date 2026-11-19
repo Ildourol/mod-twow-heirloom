@@ -19,8 +19,6 @@
 
 namespace
 {
-    constexpr uint32 UpdateIntervalMs = 1000;
-
     bool IsCatalogEntry(uint32 entry)
     {
         return entry >= 900001 && entry <= 916160 && entry % 100 >= 1 && entry % 100 <= 60;
@@ -99,39 +97,13 @@ bool HeirloomMgr::HasOwnedFamily(Player* player, uint32 family)
     });
 }
 
-void HeirloomMgr::HandlePlayerLogin(Player* player)
+void HeirloomMgr::RestoreEquippedDurability(Player* player)
 {
-    AdaptAllPlayerHeirlooms(player, true);
-}
-
-void HeirloomMgr::HandlePlayerLogout(Player* player)
-{
-    std::lock_guard<std::mutex> lock(m_updateMutex);
-    m_updateTimers.erase(player->GetObjectGuid());
-}
-
-void HeirloomMgr::HandlePlayerUpdate(Player* player, uint32 diff)
-{
-    if (!sHeirloomConfig.IsEnabled())
-        return;
-
-    {
-        std::lock_guard<std::mutex> lock(m_updateMutex);
-        uint32& remaining = m_updateTimers[player->GetObjectGuid()];
-        if (diff < remaining)
-        {
-            remaining -= diff;
-            return;
-        }
-        remaining = UpdateIntervalMs;
-    }
-
-    AdaptAllPlayerHeirlooms(player);
-    if (sHeirloomConfig.IsDurabilityExemptEnabled())
-        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
-            if (Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
-                if (IsHeirloomItem(item->GetProto()))
-                    EnsureHeirloomDurability(player, item, slot);
+    for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+        if (Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
+            if (item->GetUInt32Value(ITEM_FIELD_DURABILITY) < item->GetUInt32Value(ITEM_FIELD_MAXDURABILITY) &&
+                IsHeirloomItem(item->GetProto()))
+                EnsureHeirloomDurability(player, item, slot);
 }
 
 void HeirloomMgr::AdaptAllPlayerHeirlooms(Player* player, bool refreshTooltips)
@@ -166,20 +138,29 @@ void HeirloomMgr::AdaptAllPlayerHeirlooms(Player* player, bool refreshTooltips)
             return false;
         }
 
-        if (sendTooltips)
-            sWorld.SendUpdateSingleItem(target, session);
+        uint16 position = (static_cast<uint16>(bag) << 8) | slot;
         if (equipped)
             player->RemoveItem(bag, slot, false);
 
-        item->ChangeEntry(next);
+        if (!item->ChangeEntry(next))
+        {
+            if (equipped)
+                player->EquipItem(position, item, true);
+            return false;
+        }
+        if (sendTooltips)
+            sWorld.SendUpdateSingleItem(target, session);
         item->ApplyModFlag(ITEM_FIELD_FLAGS, ITEM_DYNFLAG_BOA, true);
         item->SetUInt32Value(ITEM_FIELD_MAXDURABILITY, next->MaxDurability);
         item->SetUInt32Value(ITEM_FIELD_DURABILITY,
                              std::min(item->GetUInt32Value(ITEM_FIELD_DURABILITY), next->MaxDurability));
         if (equipped)
-            player->EquipItem((uint16(bag) << 8) | slot, item, true);
+            player->EquipItem(position, item, true);
         else if (sendTooltips)
             item->SendCreateUpdateToPlayer(player);
+
+        // Queue the final state after changing the entry, flags and durability.
+        item->SetState(ITEM_CHANGED, player);
         return false;
     });
 }
@@ -234,6 +215,8 @@ float HeirloomMgr::CalculatePlayerBonusXPPercent(Player* player) const
 
     totalPercent += checkSlot(EQUIPMENT_SLOT_SHOULDERS, sHeirloomConfig.GetShoulderBonusXPPercent());
     totalPercent += checkSlot(EQUIPMENT_SLOT_CHEST, sHeirloomConfig.GetChestBonusXPPercent());
+    totalPercent += checkSlot(EQUIPMENT_SLOT_FINGER1, sHeirloomConfig.GetRingBonusXPPercent());
+    totalPercent += checkSlot(EQUIPMENT_SLOT_FINGER2, sHeirloomConfig.GetRingBonusXPPercent());
 
     totalPercent *= sHeirloomConfig.GetBonusXPRate();
     if (!std::isfinite(totalPercent) || totalPercent < 0.0f)

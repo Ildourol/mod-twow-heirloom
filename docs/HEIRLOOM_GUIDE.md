@@ -76,4 +76,4 @@ Use `Heirloom.Collection.Armor.Level<level>` for armor and `Heirloom.Collection.
 
 ## Experience and scaling
 
-Qualifying shoulders and chests each grant 10% bonus XP by default. Rings and trinkets grant no bonus XP. Item tooltips show these default bonuses. Server configuration determines the actual rate. Curators award gear at the lower of the player's level and the server's scaling cap. With automatic scaling disabled, items retain their current tier after the claim.
+Qualifying shoulders and chests each grant 10% bonus XP by default. Each qualifying ring grants another 5% by default, so wearing two adds 10%. The `Heirloom.BonusXP.RingPercent` setting controls the bonus per ring. Item tooltips show the default bonuses. Server configuration determines the actual rate. Curators award gear at the lower of the player's level and the server's scaling cap. With automatic scaling disabled, items retain their current tier after the claim.

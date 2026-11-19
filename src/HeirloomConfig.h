@@ -31,6 +31,7 @@ public:
     [[nodiscard]] float GetBonusXPRate() const { return m_bonusXPRate; }
     [[nodiscard]] float GetShoulderBonusXPPercent() const { return m_shoulderXPPercent; }
     [[nodiscard]] float GetChestBonusXPPercent() const { return m_chestXPPercent; }
+    [[nodiscard]] float GetRingBonusXPPercent() const { return m_ringXPPercent; }
 
     // Durability exemption toggle
     [[nodiscard]] bool IsDurabilityExemptEnabled() const { return m_durabilityExempt; }
@@ -63,12 +64,13 @@ private:
     std::atomic<float> m_bonusXPRate{1.0f};
     std::atomic<float> m_shoulderXPPercent{10.0f};
     std::atomic<float> m_chestXPPercent{10.0f};
+    std::atomic<float> m_ringXPPercent{5.0f};
 
     std::atomic<bool> m_durabilityExempt{true};
     std::atomic<bool> m_autoImport{true};
     std::string m_sqlPath;
     std::atomic<bool> m_announceEnabled{false};
-    std::atomic<bool> m_debugEnabled{true};
+    std::atomic<bool> m_debugEnabled{false};
 
     std::unordered_set<uint32> m_explicitHeirloomIds;
 };

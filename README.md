@@ -35,16 +35,16 @@ Spending all eight default armor choices on the same set completes it by level 5
 
 ## Fresh installation
 
-Place the module under the Tortoise core's modules directory and install its configuration template. Import the prebuilt files into fresh Tortoise World and Characters schemas before startup, or enable the module in the core SQL updater.
+Place the module under the Tortoise core's modules directory and install its configuration template. On startup, the core SQL updater can import the module data before loading the world. If the updater skips this module, the default module configuration imports the files automatically.
 
 | Database | Install file |
 | --- | --- |
 | World | [heirloom_world.sql](data/sql/world/heirloom_world.sql) |
 | Characters | [heirloom_characters.sql](data/sql/character/heirloom_characters.sql) |
 
-The [SQL ZIP](data/heirloom_install_sql.zip) contains the same two files. The World SQL already contains all 9,720 heirloom templates, with 60 levels for each of 162 families. The Characters SQL starts with an empty collection table. The files can be imported again without clearing collection data.
+The World SQL contains all 9,720 heirloom templates, with 60 levels for each of 162 families. The Characters SQL creates an empty collection table on a fresh install. Re-importing preserves existing collection data.
 
-With `Heirloom.Database.AutoImport = 1`, the module installs missing data from the bundled SQL. A fallback World import needs a restart because it runs after the core loads item and NPC data. `Heirloom.Database.SqlPath` points to the World SQL directory. The Characters SQL belongs in the sibling character directory.
+With `Heirloom.Database.AutoImport = 1`, the module installs missing data from the bundled SQL. When the fallback installs World data, it logs that one restart is needed to load the items and curators. `Heirloom.Database.SqlPath` points to the World SQL directory. The Characters SQL belongs in the sibling character directory.
 
 The shops use the built-in `TW_Merchant` interface in client 1.18.1.7979 and the server's addon-message channel.
 

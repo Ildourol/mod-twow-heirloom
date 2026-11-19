@@ -13,7 +13,7 @@
 namespace
 {
     constexpr std::array<uint8, 3> Thresholds = {2, 4, 8};
-    constexpr std::array<uint8, 8> Slots = {
+    constexpr std::array<uint8, HeirloomArmorSets::EquippedEntries{}.size()> Slots = {
         EQUIPMENT_SLOT_HEAD, EQUIPMENT_SLOT_SHOULDERS, EQUIPMENT_SLOT_CHEST, EQUIPMENT_SLOT_WRISTS,
         EQUIPMENT_SLOT_HANDS, EQUIPMENT_SLOT_WAIST, EQUIPMENT_SLOT_LEGS, EQUIPMENT_SLOT_FEET
     };
@@ -158,6 +158,17 @@ bool HeirloomArmorSets::Initialize()
     // Never apply or remove an aura if a reserved ID belongs to another spell.
     Available = std::all_of(std::begin(Sets), std::end(Sets), HasValidSetSpell);
     return Available;
+}
+
+HeirloomArmorSets::EquippedEntries HeirloomArmorSets::GetEquippedEntries(Player const* player)
+{
+    EquippedEntries entries{};
+    if (Available)
+        for (size_t i = 0; i < Slots.size(); ++i)
+            if (Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, Slots[i]))
+                if (HeirloomMgr::GetFamily(item->GetEntry()))
+                    entries[i] = item->GetEntry();
+    return entries;
 }
 
 void HeirloomArmorSets::Clear(Player* player)
