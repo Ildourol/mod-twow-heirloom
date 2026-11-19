@@ -15,9 +15,67 @@
 Heirloom.Enable = 1
 
 #
+# Heirloom.Collection.Enable
+#     Description: Enables the heirloom shops, account unlocks, and alt claims.
+#                  Turning it off preserves existing unlocks and owned items.
+#     Default:     1 (Enabled)
+#                  0 (Disabled)
+#
+Heirloom.Collection.Enable = 1
+
+#
+# Heirloom.Collection.PerCharacterUnlocks
+#     Description: Each character earns their own choices. Newly unlocked families
+#                  join the account collection, and claims spend no choices.
+#                  Set to 0 to count all unlocks against one account allowance.
+#     Default:     1 (Enabled)
+#
+Heirloom.Collection.PerCharacterUnlocks = 1
+
+#
+# Heirloom.Collection.Mail.Enable
+#     Description: Mail bound vouchers for new heirloom choices. Shop prices vary
+#                  by item type. Set to 0 to spend the same earned
+#                  allowances directly at the shop without waiting for letters.
+#     Default:     1 (Enabled)
+#
+Heirloom.Collection.Mail.Enable = 1
+
+#
+# Heirloom.Collection.Armor.Level10 / Level20 / Level30 / Level40 / Level50 / Level55
+# Heirloom.Collection.WeaponTokens.Level10 / Level20 / Level30 / Level40 / Level50 / Level55
+#     Description: Additional permanent choices at each bracket.
+#                  Unused armor choices and weapon tokens carry forward independently.
+#                  Set a bracket to 0 to award none. Lowering a limit preserves
+#                  existing unlocks. Level55 replaces the former Level60 keys.
+#     Default:     8 armor choices and 6 weapon tokens by level 55.
+#
+Heirloom.Collection.Armor.Level10 = 1
+Heirloom.Collection.Armor.Level20 = 2
+Heirloom.Collection.Armor.Level30 = 1
+Heirloom.Collection.Armor.Level40 = 2
+Heirloom.Collection.Armor.Level50 = 1
+Heirloom.Collection.Armor.Level55 = 1
+Heirloom.Collection.WeaponTokens.Level10 = 2
+Heirloom.Collection.WeaponTokens.Level20 = 1
+Heirloom.Collection.WeaponTokens.Level30 = 1
+Heirloom.Collection.WeaponTokens.Level40 = 1
+Heirloom.Collection.WeaponTokens.Level50 = 1
+Heirloom.Collection.WeaponTokens.Level55 = 0
+
+# Each Curator's Token buys one ring or trinket.
+Heirloom.Collection.AccessoryTokens.Level10 = 1
+Heirloom.Collection.AccessoryTokens.Level20 = 1
+Heirloom.Collection.AccessoryTokens.Level30 = 1
+Heirloom.Collection.AccessoryTokens.Level40 = 1
+Heirloom.Collection.AccessoryTokens.Level50 = 0
+Heirloom.Collection.AccessoryTokens.Level55 = 0
+
+#
 # Heirloom.Scaling.Enable
-#     Description: Enables dynamic stat scaling for equipped heirloom items based on player level.
-#                  Scales primary stats (Str, Agi, Sta, Int, Spi, Mana, Health), armor, and block.
+#     Description: Updates owned catalog heirlooms to the character's capped-level template.
+#                  When disabled, owned templates stay at their current tier. Curator claims
+#                  still use the same capped-level template at the time of delivery.
 #     Default:     1 (Enabled)
 #                  0 (Disabled)
 #
@@ -25,18 +83,10 @@ Heirloom.Scaling.Enable = 1
 
 #
 # Heirloom.Scaling.MaxLevel
-#     Description: Maximum level to which heirloom items scale attributes (bounds: 1 to 60).
+#     Description: Highest template tier for scaling and curator previews and claims (range: 1-60).
 #     Default:     60
 #
 Heirloom.Scaling.MaxLevel = 60
-
-#
-# Heirloom.Scaling.StatMultiplier
-#     Description: Multiplier applied to scaled stats and armor.
-#                  1.0 corresponds to standard vanilla rare item budgets. Bounded between 0.1 and 10.0.
-#     Default:     1.0
-#
-Heirloom.Scaling.StatMultiplier = 1.0
 
 #
 # Heirloom.BonusXP.Enable
@@ -68,20 +118,6 @@ Heirloom.BonusXP.ShoulderPercent = 10.0
 Heirloom.BonusXP.ChestPercent = 10.0
 
 #
-# Heirloom.BonusXP.TrinketPercent
-#     Description: Bonus experience percentage granted by an equipped heirloom trinket.
-#     Default:     0.0 (0% - WotLK authentic behavior)
-#
-Heirloom.BonusXP.TrinketPercent = 0.0
-
-#
-# Heirloom.BonusXP.RingPercent
-#     Description: Bonus experience percentage granted by an equipped heirloom finger ring.
-#     Default:     5.0 (5% each)
-#
-Heirloom.BonusXP.RingPercent = 5.0
-
-#
 # Heirloom.Durability.Exempt
 #     Description: Audits equipped heirlooms and restores durability to prevent breakage.
 #                  Note: Authentic 100% loss prevention requires item templates with MaxDurability = 0.
@@ -92,20 +128,12 @@ Heirloom.Durability.Exempt = 1
 
 #
 # Heirloom.ItemIds
-#     Description: Comma-separated list of explicit item IDs treated as heirlooms (in addition
-#                  to any items with Bonding = 6 / BIND_ACCOUNT).
-#                  Setting to "default" loads the 15 dedicated custom heirloom items (IDs 990101 - 990115):
-#                    Plate: 990101 (Spaulders of Valor), 990102 (Breastplate of Valor)
-#                    Mail: 990103 (Champion Herod's Shoulder), 990104 (Champion's Deathdealer Breastplate),
-#                          990109 (Mystical Pauldrons of Elements), 990110 (Mystical Vest of Elements)
-#                    Leather: 990105 (Stained Shadowcraft Spaulders), 990106 (Stained Shadowcraft Tunic),
-#                             990111 (Preened Ironfeather Shoulders), 990112 (Preened Ironfeather Breastplate)
-#                    Cloth: 990107 (Tattered Dreadmist Mantle), 990108 (Tattered Dreadmist Robe)
-#                    Jewelry: 990113 (Discerning Eye of the Beast), 990114 (Swift Hand of Justice),
-#                             990115 (Dread Pirate Ring)
-#     Default:     "default"
+#     Description: Optional comma-separated item IDs eligible for heirloom XP and durability.
+#                  Catalog items and native account-bound items qualify
+#                  automatically. Only module catalog families have scaling templates.
+#     Default:     ""
 #
-Heirloom.ItemIds = "default"
+Heirloom.ItemIds = ""
 
 #
 # Heirloom.Announce.Enable
@@ -125,10 +153,9 @@ Heirloom.Debug.Enable = 1
 
 #
 # Heirloom.Database.AutoImport
-#     Description: Automatically checks tw_world database for required heirloom item templates
-#                  (entries 900001-916160), dual-vendor curators, and major bank spawns on world startup.
-#                  If missing, automatically executes module migrations from data/sql/world/ and
-#                  reloads memory templates seamlessly for standalone operation.
+#     Description: Applies pending module world and character SQL if the core updater has
+#                  not done so. Restart once after a fallback world import to load
+#                  the new item templates and curator script bindings.
 #     Default:     1 (Enabled)
 #                  0 (Disabled)
 #
@@ -136,8 +163,8 @@ Heirloom.Database.AutoImport = 1
 
 #
 # Heirloom.Database.SqlPath
-#     Description: Optional custom directory path pointing to the module's data/sql/world/ migration files.
-#                  If empty (""), the module automatically discovers the directory from standard relative paths.
+#     Description: Directory containing the World install SQL. The Characters install SQL is
+#                  loaded from the sibling character directory. Leave empty for auto-discovery.
 #     Default:     ""
 #
 Heirloom.Database.SqlPath = ""

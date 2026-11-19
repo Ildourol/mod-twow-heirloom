@@ -5,30 +5,30 @@
 
 #include "HeirloomWorldScript.h"
 #include "HeirloomConfig.h"
+#include "HeirloomArmorSets.h"
 #include "ScriptObjects.h"
-#include "Objects/Player.h"
-#include "Objects/Creature.h"
-#include "ObjectMgr.h"
-#include "WorldSession.h"
 #include "Database/DatabaseEnv.h"
 #include "Database/QueryResult.h"
+#include "ObjectMgr.h"
 #include "Log.h"
 
-#include <algorithm>
 #include <filesystem>
 #include <fstream>
-#include <sstream>
+#include <iterator>
 #include <string>
-#include <vector>
 
 namespace
 {
-    bool ExecuteSqlFile(std::string const& filePath)
+    constexpr char WorldInstallSql[] = "heirloom_world.sql";
+    constexpr char CharacterInstallSql[] = "heirloom_characters.sql";
+    bool CollectionReady = false;
+
+    bool ExecuteSqlFile(DatabaseType& database, std::filesystem::path const& filePath)
     {
         std::ifstream file(filePath, std::ios::binary);
         if (!file.is_open())
         {
-            sLog.outError("[mod-twow-heirloom] Failed to open SQL file: %s", filePath.c_str());
+            sLog.outError("[mod-twow-heirloom] Failed to open SQL file: %s", filePath.string().c_str());
             return false;
         }
 
@@ -49,7 +49,10 @@ namespace
             if (scope == SingleLineComment)
             {
                 if (c == '\n' || c == '\r')
+                {
                     scope = None;
+                    currentQuery += ' ';
+                }
                 continue;
             }
             if (scope == MultiLineComment)
@@ -125,7 +128,8 @@ namespace
                     std::string trimmed = currentQuery.substr(first, (last - first + 1));
                     if (!trimmed.empty())
                     {
-                        WorldDatabase.DirectExecute(trimmed.c_str());
+                        if (!database.DirectExecute(trimmed.c_str()))
+                            return false;
                     }
                 }
                 currentQuery.clear();
@@ -142,106 +146,63 @@ namespace
             std::string trimmed = currentQuery.substr(first, (last - first + 1));
             if (!trimmed.empty())
             {
-                WorldDatabase.DirectExecute(trimmed.c_str());
+                return database.DirectExecute(trimmed.c_str());
             }
         }
 
         return true;
     }
 
-    std::string FindSqlDirectory()
+    bool HasWorldData()
     {
-        namespace fs = std::filesystem;
-        std::string customPath = sHeirloomConfig.GetSqlPath();
-        if (!customPath.empty())
-        {
-            std::error_code ec;
-            if (fs::exists(fs::path(customPath) / "0001_custom_heirloom_items.sql", ec))
-                return customPath;
-        }
-
-        std::vector<std::string> candidates = {
-            "modules/mod-twow-heirloom/data/sql/world",
-            "../modules/mod-twow-heirloom/data/sql/world",
-            "../../modules/mod-twow-heirloom/data/sql/world",
-            "Source/tortoise-wow/modules/mod-twow-heirloom/data/sql/world",
-            "../Source/tortoise-wow/modules/mod-twow-heirloom/data/sql/world",
-            "../../Source/tortoise-wow/modules/mod-twow-heirloom/data/sql/world",
-            "C:/Users/Admin/AntigravityProfiles/Projects Twow/Turtle wow modules/mod-twow-heirloom/data/sql/world",
-            "C:/Users/Admin/AntigravityProfiles/Projects Twow/Turtle wow server/Source/tortoise-wow/modules/mod-twow-heirloom/data/sql/world"
-        };
-
-        for (std::string const& p : candidates)
-        {
-            std::error_code ec;
-            if (fs::exists(fs::path(p) / "0001_custom_heirloom_items.sql", ec))
-                return p;
-        }
-
-        return "";
+        QueryResult* result = WorldDatabase.Query(
+            "SELECT 1 FROM DUAL WHERE "
+            "(SELECT COUNT(*) FROM item_template WHERE entry BETWEEN 900001 AND 916160 "
+            "AND MOD(entry, 100) BETWEEN 1 AND 60 AND bonding = 6) = 9720 "
+            "AND (SELECT COUNT(*) FROM item_template WHERE entry IN (916301, 916302, 916303) AND bonding = 1) = 3 "
+            "AND (SELECT COUNT(*) FROM spell_template WHERE entry BETWEEN 65010 AND 65020) = 11 "
+            "AND (SELECT COUNT(*) FROM creature_template WHERE entry IN (2000201, 2000204, 2000221, 2000224) "
+            "AND script_name = 'npc_heirloom_vendor') = 4 "
+            "AND (SELECT COUNT(DISTINCT id) FROM creature WHERE id IN (2000201, 2000204, 2000221, 2000224)) = 4 "
+            "AND EXISTS (SELECT 1 FROM npc_text n JOIN broadcast_text b ON b.entry = n.BroadcastTextID0 "
+            "WHERE n.ID = 910210 AND b.male_text = 'CUSTOM_MERCHANT_TRIGGER' "
+            "AND b.female_text = 'CUSTOM_MERCHANT_TRIGGER')");
+        bool ready = result != nullptr;
+        delete result;
+        return ready;
     }
 
-    void CheckAndImportHeirloomDatabase()
+    bool HasCharacterSchema()
     {
-        if (!sHeirloomConfig.IsAutoImportEnabled())
-            return;
+        QueryResult* result = CharacterDatabase.Query(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() "
+            "AND TABLE_NAME = 'mod_heirloom_account_collection' "
+            "AND COLUMN_NAME IN ('account_id', 'family', 'pool', 'milestone', 'earner_guid', "
+            "'unlock_slot', 'shared_slot', 'unlock_cost')");
+        bool ready = result && result->Fetch()[0].GetUInt32() == 8;
+        delete result;
+        return ready;
+    }
 
-        QueryResult* itemCheck = WorldDatabase.Query("SELECT entry FROM item_template WHERE entry = 900001 LIMIT 1");
-        QueryResult* vendorCheck = WorldDatabase.Query("SELECT entry FROM creature_template WHERE entry = 2000200 LIMIT 1");
-        QueryResult* spawnCheck = WorldDatabase.Query("SELECT guid FROM creature WHERE id = 2000201 LIMIT 1");
-
-        bool itemsMissing = (itemCheck == nullptr);
-        bool vendorsMissing = (vendorCheck == nullptr);
-        bool spawnsMissing = (spawnCheck == nullptr);
-
-        if (itemCheck) delete itemCheck;
-        if (vendorCheck) delete vendorCheck;
-        if (spawnCheck) delete spawnCheck;
-
-        if (!itemsMissing && !vendorsMissing && !spawnsMissing)
-        {
-            sLog.outString("[mod-twow-heirloom] Database verified: Heirloom item templates (900001-916160), vendors, and spawns are intact.");
-            return;
-        }
-
-        sLog.outString("[mod-twow-heirloom] Standalone Auto-Import: Missing items (%d), vendors (%d), or spawns (%d). Searching SQL migrations...",
-            itemsMissing ? 1 : 0, vendorsMissing ? 1 : 0, spawnsMissing ? 1 : 0);
-
-        std::string sqlDir = FindSqlDirectory();
-        if (sqlDir.empty())
-        {
-            sLog.outError("[mod-twow-heirloom] Standalone Auto-Import: Could not locate 'data/sql/world' directory! Please check Heirloom.Database.SqlPath.");
-            return;
-        }
-
+    std::filesystem::path FindWorldSql()
+    {
         namespace fs = std::filesystem;
-        std::vector<std::string> sqlFiles;
-        std::error_code dirEc;
-        for (auto const& dirEntry : fs::directory_iterator(sqlDir, dirEc))
+        std::error_code error;
+        std::string configuredPath = sHeirloomConfig.GetSqlPath();
+        if (!configuredPath.empty())
+            return fs::path(configuredPath);
+
+        for (fs::path const& root : {fs::path("."), fs::path(".."), fs::path("../..")})
         {
-            if (dirEntry.is_regular_file() && dirEntry.path().extension() == ".sql")
+            for (fs::path const& prefix : {fs::path(""), fs::path("Source/tortoise-wow")})
             {
-                sqlFiles.push_back(dirEntry.path().string());
+                fs::path candidate = root / prefix / "modules/mod-twow-heirloom/data/sql/world";
+                if (fs::is_regular_file(candidate / WorldInstallSql, error))
+                    return candidate;
             }
         }
-        std::sort(sqlFiles.begin(), sqlFiles.end());
-
-        for (std::string const& filePath : sqlFiles)
-        {
-            std::error_code ec;
-            if (fs::exists(filePath, ec))
-            {
-                sLog.outString("[mod-twow-heirloom] Importing migration: %s", fs::path(filePath).filename().string().c_str());
-                ExecuteSqlFile(filePath);
-            }
-        }
-
-        sLog.outString("[mod-twow-heirloom] Reloading item templates, creature templates, and vendor inventories into memory...");
-        sObjectMgr.LoadItemPrototypes();
-        sObjectMgr.LoadCreatureTemplates();
-        sObjectMgr.LoadVendors();
-
-        sLog.outString("[mod-twow-heirloom] Standalone Auto-Import completed successfully. Heirloom system is fully operational.");
+        fs::path adjacent = "data/sql/world";
+        return fs::is_regular_file(adjacent / WorldInstallSql, error) ? adjacent : fs::path();
     }
 
     class ModTwowHeirloomWorldScript : public WorldScript
@@ -249,75 +210,66 @@ namespace
     public:
         ModTwowHeirloomWorldScript()
             : WorldScript("mod-twow-heirloom_world",
-                {
-                    WORLDHOOK_ON_STARTUP,
-                    WORLDHOOK_ON_AFTER_CONFIG_LOAD,
-                    WORLDHOOK_ON_LOAD_CUSTOM_DATABASE_TABLE
-                })
+                { WORLDHOOK_ON_AFTER_CONFIG_LOAD, WORLDHOOK_ON_LOAD_CUSTOM_DATABASE_TABLE })
         {
-        }
-
-        void OnLoadCustomDatabaseTable() override
-        {
-            sHeirloomConfig.Load();
-            CheckAndImportHeirloomDatabase();
-        }
-
-        void OnStartup() override
-        {
-            sHeirloomConfig.Load();
-            CheckAndImportHeirloomDatabase();
-            sLog.outString("[mod-twow-heirloom] Module initialized successfully.");
         }
 
         void OnAfterConfigLoad(bool /*reload*/) override
         {
             sHeirloomConfig.Load();
         }
-    };
 
-    class HeirloomVendorScript : public CreatureScript
-    {
-    public:
-        HeirloomVendorScript()
-            : CreatureScript("npc_heirloom_vendor")
+        void OnLoadCustomDatabaseTable() override
         {
-        }
+            sHeirloomConfig.Load();
+            bool worldInstalled = HasWorldData();
+            bool characterReady = HasCharacterSchema();
+            bool worldLoaded = worldInstalled && sObjectMgr.GetNpcText(HEIRLOOM_MERCHANT_TEXT) &&
+                sObjectMgr.GetItemPrototype(900001) && sObjectMgr.GetItemPrototype(916160) &&
+                sObjectMgr.GetItemPrototype(HEIRLOOM_ARMOR_VOUCHER) &&
+                sObjectMgr.GetItemPrototype(HEIRLOOM_WEAPON_VOUCHER) &&
+                sObjectMgr.GetItemPrototype(HEIRLOOM_ACCESSORY_VOUCHER);
+            bool armorSetsLoaded = worldLoaded && HeirloomArmorSets::Initialize();
 
-        bool OnGossipHello(Player* player, Creature* creature) override
-        {
-            if (!player || !creature)
-                return false;
-
-            VendorItemData const* vItems = sObjectMgr.GetNpcVendorItemList(creature->GetEntry());
-            if (vItems)
+            if ((!worldInstalled || !characterReady) &&
+                sHeirloomConfig.IsEnabled() && sHeirloomConfig.IsAutoImportEnabled())
             {
-                uint8 pLevel = std::clamp<uint8>(player->GetLevel(), 1, 60);
-                for (size_t i = 0; i < vItems->m_items.size(); ++i)
+                std::filesystem::path worldSql = FindWorldSql();
+                if (worldSql.empty())
+                    sLog.outError("[mod-twow-heirloom] Install SQL not found. Set Heirloom.Database.SqlPath to the world SQL directory.");
+                else
                 {
-                    VendorItem* vItem = vItems->GetItem(static_cast<uint32>(i));
-                    if (vItem)
+                    if (!worldInstalled)
                     {
-                        uint32 baseId = (vItem->item / 100) * 100;
-                        if (baseId >= 900000 && baseId <= 916260)
-                        {
-                            vItem->item = baseId + pLevel;
-                        }
+                        // The fallback runs after the core has loaded templates and script bindings.
+                        if (ExecuteSqlFile(WorldDatabase, worldSql / WorldInstallSql) && HasWorldData())
+                            sLog.outString("[mod-twow-heirloom] World data installed. Restart to load the items and curators.");
+                        else
+                            sLog.outError("[mod-twow-heirloom] Could not install the world data from %s.", WorldInstallSql);
+                    }
+                    if (!characterReady)
+                    {
+                        std::filesystem::path characterSql = worldSql.parent_path() / "character" / CharacterInstallSql;
+                        characterReady = ExecuteSqlFile(CharacterDatabase, characterSql) && HasCharacterSchema();
+                        if (!characterReady)
+                            sLog.outError("[mod-twow-heirloom] Could not create the collection from %s.", CharacterInstallSql);
                     }
                 }
             }
 
-            if (player->GetSession())
-            {
-                player->GetSession()->SendListInventory(creature->GetObjectGuid());
-            }
-            return true;
+            CollectionReady = worldLoaded && armorSetsLoaded && characterReady;
+            if (!CollectionReady && sHeirloomConfig.IsEnabled())
+                sLog.outString("[mod-twow-heirloom] Curators require the installed world data and character collection schema.");
         }
     };
+}
+
+bool IsHeirloomCollectionReady()
+{
+    return CollectionReady;
 }
 
 void AddHeirloomWorldScripts()
 {
     new ModTwowHeirloomWorldScript();
-    new HeirloomVendorScript();
 }

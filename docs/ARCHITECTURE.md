@@ -1,65 +1,39 @@
-# Technical Architecture: mod-twow-heirloom
+# Heirloom module architecture
 
-## 1. Overview
-`mod-twow-heirloom` provides Account-Bound Heirloom gear mechanics for the Turtle WoW custom vMaNGOS engine (`tortoise-wow` client 1.18.1.7272 / 1.12.1).
+## Curators and account state
 
-> **Module Status**: `ACTIVE & VERIFIED` (Compiled Release x64, 9,720 item templates across 162 archetypes, dual capital city vendors, live runtime verified).  
-> **Immutability Invariant**: Strictly compliant with **The Unediting Doctrine** (0 modifications to core or TortoiseBots).
+The curator script sends the Tortoise client's built-in merchant trigger. Build 1.18.1.7979 hides the dialogue and opens its token shop directly. The module serves `TW_Merchant` requests for its own nearby, faction-appropriate curators and calculates each buyer's capped offers and prices independently. The native `npc_vendor` stock stays empty. Purchase requests revalidate the family, proficiency, current allowance, and voucher in the bags before delivery. The module records a new family before consuming its voucher, so a delivery retry can use a free claim.
 
----
+The character database starts with an empty mod_heirloom_account_collection table. Each family is unique per account. Spending is tracked by earner, equipment pool, and bracket in per-character mode, and by account in shared mode. The unique shared slot prevents concurrent grants from using the same slot. The curator picks the earliest earned bracket with room and validates the cumulative allowance. Bag space and existing equipment, inventory, and bank copies are checked before an unlock or claim. The collection row is written before delivery so an interrupted delivery can be retried as a free claim.
 
-## 2. Core Architectural Patterns & Hook Integration
+## Curator letters
 
-### A. Level-Aware Prototype Scaling & Adaptation
-- **Mathematical Family Formula**: Every archetype is anchored to a base entry divisible by 100 in the range `900000–916100`. The level-specific item template is:
-  $$\text{Item Entry} = \text{Family Base} + \text{clamp}(\text{characterLevel}, 1, 60)$$
-- **Dynamic Vendor Inventory**: In `HeirloomWorldScript.cpp`, `HeirloomVendorScript::OnGossipHello` dynamically intercepts the gossip greeting, checks the player's level (clamped 1–60), and updates the vendor's template items so that players only see and buy gear matching their exact level.
-- **Inventory Adaptation**: In `HeirloomMgr::AdaptAllPlayerHeirlooms`, player login, level changes, and loot events trigger a non-destructive item swap in equipped slots, backpack, and bag containers, adapting items from `base + oldLevel` to `base + newLevel`.
+The level-change, login, and shop-open hooks compare earned, unspent choices with bound vouchers in the player's bags, bank, and unexpired mail. Each voucher shortage generates its own letter and attachment, sent by the corresponding faction curator. The account collection determines how many unspent choices remain when vouchers are replaced or the earning mode changes.
 
-### B. Standard WoW Armor Invariants (Simplified Armor Policy)
-- **Zero Armor Morphing**: Armor types strictly preserve standard World of Warcraft proficiencies:
-  - Plate is Plate (requires character level 40 and Plate Mail armor proficiency).
-  - Mail is Mail (wearable from level 1 by Warriors/Paladins, level 40 by Hunters/Shamans).
-  - Leather is Leather; Cloth is Cloth.
-- No artificial down-morphing or cross-type mutation occurs; gear behaves identically to standard authentic WoW gear.
+## Weapon tokens
 
-### C. Stat Scaling & Deltas Layer
-- **Hook Integration**: Uses native `PlayerScript::OnLevelChanged`, `PlayerScript::OnLogin`, `PlayerScript::OnLogout`, and `PlayerScript::OnUpdate` (1000ms periodic audit).
-- **Primary Attributes**: Applied via `Player::HandleStatModifier(..., apply)` and `Player::ApplyStatBuffMod(..., apply)`.
-- **Resource Stats**: Mana and Health are modified via `UNIT_MOD_MANA` and `UNIT_MOD_HEALTH`.
-- **Armor & Block**: Modified via `UNIT_MOD_ARMOR` (`Player::UpdateArmor()`) and `SHIELD_BLOCK_VALUE` via `HandleBaseModValue`.
-- **Symmetric Reversal**: Delta removals pass the original positive delta with `apply = false` to guarantee symmetrical decrementing without bucket corruption.
+Level 10 grants two Weaponmaster's Seals by default. Two-handed weapon templates consume two seals and two units of the weapon allowance. Other weapon-shop offers consume one. The collection stores the allowance spent by each purchase. Offer previews, purchases, and replacement mail use the same cumulative weapon balance. The other equipment pools retain their own allowances.
 
-### D. Feature Decoupling Matrix
-- **Master Switch (`Heirloom.Enable`)**: When disabled, all active deltas are purged immediately from players and all processing halts.
-- **Scaling Toggle (`Heirloom.Scaling.Enable`)**: When disabled, scaling deltas are stripped, while `Heirloom.Durability.Exempt` continues to audit and maintain equipped heirlooms.
-- **Bonus XP Toggle (`Heirloom.BonusXP.Enable`)**: Evaluated independently inside `PlayerScript::OnGiveXP`. Shoulder (+10%), Chest (+10%), and Rings (+5% each) contribute up to a default +30% bonus XP (bounded to 200%).
-- **Durability Exemption (`Heirloom.Durability.Exempt`)**: Maintained with `MaxDurability = 0` on custom templates, ensuring zero durability decay and no repair costs.
+## Accessory collection
 
----
+The armorer combines the armor and accessory pools in the same merchant window. Each new accessory unlock consumes one Curator's Token and one accessory allowance. Mail reconciliation checks this currency independently against unexpired attachments and held tokens. Rings and trinkets use individual stats, equip effects, and flavor text.
 
-## 3. Vendor System & Faction Alignment
+## Scaling and balance
 
-- **Dual Capital Curators**:
-  - **Stormwind Bank (Alliance)**:
-    - Curator of Antiquities (Armor & Jewelry, 111 archetypes): `Kaelen Dawnbrow` (Entry `2000201`, GUID `3000201`, Faction `12`).
-    - Master of Weapons (Weapons & Shields, 51 archetypes): `Branden Stormforged` (Entry `2000221`, GUID `3000221`, Faction `12`).
-  - **Orgrimmar Bank (Horde)**:
-    - Curator of Antiquities (Armor & Jewelry, 111 archetypes): `Krag'jin` (Entry `2000204`, GUID `3000204`, Faction `29`).
-    - Master of Weapons (Weapons & Shields, 51 archetypes): `Gorrok Warsong` (Entry `2000224`, GUID `3000224`, Faction `29`).
-- **Interaction Flags**:
-  - Curators are assigned `npc_flags = 5` (`UNIT_NPC_FLAG_GOSSIP (1) | UNIT_NPC_FLAG_VENDOR (4)`), ensuring `WorldSession::SendListInventory` verifies the vendor flag while allowing `OnGossipHello` to adapt stock dynamically.
-- **Faction Alignment**:
-  - Faction `12` (Stormwind) is friendly to all Alliance races.
-  - Faction `29` (Orgrimmar) is friendly to all Horde races.
+The effective template entry is `family + clamp(characterLevel, 1, MaxLevel)`. The same level function drives curator previews, grants, and subsequent scaling. Login, level changes, loot, and periodic inventory checks update existing instances through core item and equipment APIs. Equipped items remove the previous template's modifiers and equip the new one through the core. The item template supplies its stats, armor, damage range, block, and equip aura, and the module sends that template to the client for its tooltip. Bonus XP and durability use their existing independent configuration.
 
----
+The bundled World SQL contains all 60 tiers for 162 families. Combat values use rare item and quest reward benchmarks by slot, material, or weapon type. Shields use separate armor and block curves. Roles allocate stat points and fixed equip effects within those budgets. The balance audit records the sample and example values. The catalog also includes alternative appearances with equivalent stats for several Arcane families.
 
-## 4. Standalone Database Auto-Importer
+## Armor set bonuses
 
-With `Heirloom.Database.AutoImport = 1` (default ON):
-1. On server boot (`Addmod_twow_heirloomScripts`), the module checks `tw_world` for existing heirloom templates and vendor entries.
-2. If missing, it locates `data/sql/world/` migrations:
-   - `0001_custom_heirloom_items.sql` (9,720 templates)
-   - `0002_heirloom_vendor_npc.sql` (Curator templates, vendor lists, and bank spawns)
-3. Executes them sequentially and reloads memory prototype tables automatically without server downtime.
+Each armor set uses one module-owned passive aura with up to three native effects. The player hook counts the eight matching equipment slots and recomputes the cumulative amounts when a 2-, 4-, or 8-piece threshold is reached. Flat effects scale by template tier. Percentage effects use whole percentage points and activate at the tier declared in the set data. It refreshes the aura through the core and removes it as soon as the worn pieces cease to qualify on the next player update. Set membership uses the item family, so changing level templates preserves it. Passive auras are recomputed on login and are not saved to characters.
+
+`src/HeirloomArmorSets.inc` supplies the curator catalog, aura IDs, and effect progression. The World SQL includes the passive spells for low tiers and the stock armor models and set IDs for higher tiers. The core applies stock set effects and the client reads the matching ItemSet.dbc records. The module yields to the core for an equipped family with a native set ID.
+
+## Installation
+
+The core updater can import the prebuilt World and Characters SQL before loading items and scripts. The module checks the actual World data and Characters table on startup. If enabled, its fallback imports missing data and logs when a restart is needed to load the world templates. The SQL archive mirrors the two standalone install files.
+
+## Live verification
+
+Test with two characters of different levels opening the same curator concurrently. Check full bags, duplicate claims across bank storage, persistence across a restart, and an eligible alt claim from the other faction's capital. Change `MaxLevel` below a character's level and compare equipped damage and armor, fixed equip effects, and the item tooltip before and after the same cap is used for a new claim. Verify the wand performs Arcane damage and compare both a shield and a two-handed weapon to the generated template values.

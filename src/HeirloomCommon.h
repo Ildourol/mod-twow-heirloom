@@ -6,123 +6,54 @@
 #ifndef _HEIRLOOM_COMMON_H
 #define _HEIRLOOM_COMMON_H
 
-#if defined(STANDALONE_TEST_BUILD)
-#include <cstdint>
-using uint8 = std::uint8_t;
-using int16 = std::int16_t;
-using uint16 = std::uint16_t;
-using int32 = std::int32_t;
-using uint32 = std::uint32_t;
-using int64 = std::int64_t;
-using uint64 = std::uint64_t;
-
-struct ItemPrototype
-{
-    uint32 ItemId{0};
-    uint32 ItemLevel{0};
-    uint32 RequiredLevel{0};
-};
-#else
 #include "Common.h"
 #include "ItemPrototype.h"
 #include "ObjectGuid.h"
-#endif
-
 #include <array>
-#include <cstdint>
-#include <string>
 
-// Maximum stats per item prototype in vMaNGOS
-#ifndef MAX_ITEM_PROTO_STATS
-#define MAX_ITEM_PROTO_STATS 10
-#endif
-
-// Maximum equipment slots tracked on a player (0 to 18)
-constexpr uint8 HEIRLOOM_EQUIPMENT_SLOTS_COUNT = 19;
-
-// Default level constraints
 constexpr uint8 HEIRLOOM_MIN_LEVEL = 1;
 constexpr uint8 HEIRLOOM_MAX_LEVEL_DEFAULT = 60;
-
-// Bonding type for account-bound items in Turtle WoW
-constexpr uint32 HEIRLOOM_BONDING_ACCOUNT = 6; // BIND_ACCOUNT
-
-// Core maximum XP limit enforced by Player::GiveXP (Player.cpp:3648)
+constexpr uint32 HEIRLOOM_BONDING_ACCOUNT = 6;
 constexpr uint32 CORE_MAX_GIVEXP_LIMIT = 100000;
+constexpr uint32 HEIRLOOM_ARMOR_VOUCHER = 916301;
+constexpr uint32 HEIRLOOM_WEAPON_VOUCHER = 916302;
+constexpr uint32 HEIRLOOM_ACCESSORY_VOUCHER = 916303;
 
-// Template sanity boundaries: legitimate level 1-60 item templates have stats < 500,
-// armor < 10000, and block < 2000. Pathological or corrupt values outside these bounds
-// are rejected to guarantee exact destination composition and float precision.
-constexpr int32 HEIRLOOM_MAX_VALID_NATIVE_STAT = 500;
-constexpr int32 HEIRLOOM_MIN_VALID_NATIVE_STAT = -500;
-constexpr uint32 HEIRLOOM_MAX_VALID_NATIVE_ARMOR = 10000;
-constexpr uint32 HEIRLOOM_MAX_VALID_NATIVE_BLOCK = 2000;
+enum class HeirloomPool : uint8 { Armor, Weapons, Accessories };
+constexpr std::array<HeirloomPool, 3> HEIRLOOM_POOLS = {
+    HeirloomPool::Armor, HeirloomPool::Weapons, HeirloomPool::Accessories
+};
+using HeirloomVoucherCounts = std::array<uint32, HEIRLOOM_POOLS.size()>;
 
-/**
- * Structure storing the calculated stat and attribute deltas
- * between base template values and scaled character-level values.
- */
-struct HeirloomSlotDelta
+constexpr size_t HeirloomPoolIndex(HeirloomPool pool) { return static_cast<size_t>(pool); }
+
+constexpr uint32 HeirloomVoucher(HeirloomPool pool)
 {
-    uint32 itemEntry{0};
-    uint64 itemGuid{0};
-    bool active{false};
-    bool isBroken{false};
+    constexpr HeirloomVoucherCounts entries = {
+        HEIRLOOM_ARMOR_VOUCHER, HEIRLOOM_WEAPON_VOUCHER, HEIRLOOM_ACCESSORY_VOUCHER
+    };
+    return entries[HeirloomPoolIndex(pool)];
+}
 
-    // Primary & secondary stat modifiers (scaled - base)
-    int32 statDeltas[MAX_ITEM_PROTO_STATS]{0};
-    uint32 statTypes[MAX_ITEM_PROTO_STATS]{0};
-
-    // Armor and defensive values (scaled - base)
-    int32 armorDelta{0};
-    int32 blockDelta{0};
-
-    // Weapon damage value (scaled - base)
-    int32 weaponDamageDelta{0};
-    uint8 weaponAttackType{0};
-
-    void Reset()
-    {
-        itemEntry = 0;
-        itemGuid = 0;
-        active = false;
-        isBroken = false;
-        for (uint8 i = 0; i < MAX_ITEM_PROTO_STATS; ++i)
-        {
-            statDeltas[i] = 0;
-            statTypes[i] = 0;
-        }
-        armorDelta = 0;
-        blockDelta = 0;
-        weaponDamageDelta = 0;
-        weaponAttackType = 0;
-    }
+constexpr uint32 HEIRLOOM_MERCHANT_TEXT = 910210;
+struct HeirloomUnlockBracket
+{
+    uint32 level;
+    uint32 id;
+    uint32 armorChoices;
+    uint32 weaponTokens;
+    uint32 accessoryChoices;
 };
 
-/**
- * Player cache tracking applied heirloom deltas across equipment slots.
- */
-struct HeirloomPlayerCache
-{
-    uint8 lastKnownLevel{0};
-    uint32 updateTimer{0};
-    uint32 appliedConfigGen{0};
-    bool moduleActiveWhenApplied{false};
-    bool scalingActiveWhenApplied{false};
-    std::array<HeirloomSlotDelta, HEIRLOOM_EQUIPMENT_SLOTS_COUNT> slots{};
-    std::array<uint64, HEIRLOOM_EQUIPMENT_SLOTS_COUNT> equippedGuids{};
-
-    void Reset()
-    {
-        lastKnownLevel = 0;
-        updateTimer = 0;
-        appliedConfigGen = 0;
-        moduleActiveWhenApplied = false;
-        scalingActiveWhenApplied = false;
-        for (auto& slot : slots)
-            slot.Reset();
-        equippedGuids.fill(0);
-    }
-};
+// The bracket ID identifies its allowance row in the collection table.
+constexpr std::array<HeirloomUnlockBracket, 6> HEIRLOOM_UNLOCK_BRACKETS = {{
+    {10, 4, 1, 2, 1},
+    {20, 1, 2, 1, 1},
+    {30, 5, 1, 1, 1},
+    {40, 2, 2, 1, 1},
+    {50, 6, 1, 1, 0},
+    {55, 3, 1, 0, 0}
+}};
+using HeirloomUnlockLimits = std::array<uint32, HEIRLOOM_UNLOCK_BRACKETS.size()>;
 
 #endif // _HEIRLOOM_COMMON_H

@@ -1,117 +1,63 @@
 # mod-twow-heirloom
 
-![Turtle WoW Heirloom System](docs/images/preview.jpg)
+A standalone heirloom collection for the Tortoise WoW `1181dev` core and Turtle WoW client 1.18.1.7979.
 
-A standalone heirloom equipment module for the community `tortoise-wow` custom vMaNGOS-derived server and its Turtle WoW-compatible client. This is a community project, not an official Turtle WoW module.
+## How to earn heirlooms
 
-> **Bundled & Standalone:** The full item catalog of 9,720 level 1–60 templates across 162 archetypes is bundled directly in `data/sql/world/0001_custom_heirloom_items.sql`. Dual-vendor curators (Curator of Antiquities for armor & jewelry, Master of Weapons for weapons, ranged, and shields) in Stormwind Bank and Orgrimmar Bank are bundled in `data/sql/world/0002_heirloom_vendor_npc.sql`. With `Heirloom.Database.AutoImport = 1` (default), the module automatically verifies the world database and imports missing migrations on world startup seamlessly without requiring manual SQL imports or server restarts.
+Visit the Curator of Antiquities or Master of Weapons near **Stormwind Bank** or **Orgrimmar Bank**. Right-click the curator to open Tortoise's token merchant window. A new armor family costs one **Armorer's Writ**. Two-handed weapons cost two **Weaponmaster's Seals**. Other weapon-shop offers cost one seal. Families already in your collection appear with no voucher cost. The armor curator offers eight-piece sets in plate, mail, leather, and cloth. The weapons curator offers melee and ranged weapons, caster gear, and a shield.
 
-## Features
+**Each character earns their own choices by default.** With the shipped progression, each character earns eight armor choices and six weapon seals by level 55. Armor and weapon allowances are independent. Every family unlocked joins the account collection.
 
-- **Level-aware stat scaling:** 9,720 distinct level-specific item prototypes (levels 1–60) for 162 unique heirloom pieces. Primary attributes, stamina, intellect, armor, attack power, spell damage, healing, and weapon damage naturally scale with every level gained.
-- **Dynamic Vendor Inventory:** When talking to an heirloom curator, the vendor window dynamically detects the player's level (1–60) and presents the exact level-appropriate gear for purchase (0 copper / 100% free).
-- **Automatic Inventory & Equipment Adaptation:** As a player levels up or logs in, any heirloom items in equipment slots, backpack, or inventory bags automatically adapt to match the player's new character level.
-- **Authentic Role Archetypes (No Suffixes):** Items feature evocative classic naming instead of meta role tags:
-  - **Guardian** (Tank): Maximized Stamina, Strength/Agility, Defense, and Armor.
-  - **Blessed** (Healer): Maximized Intellect, Spirit, and Healing/Spell Power.
-  - **Vindicator** (DPS): Maximized Attack Power, Strength/Agility, Critical Strike, or Spell Damage.
-  - **Arcane** (Cloth / Caster): Specialized Spell Damage and Intellect/Stamina (replacing Tank for Cloth armor, Staves, Wands, and Off-Hands).
-  - All items feature evocative double-quoted lore descriptions. Staves, Wands, and Caster Off-Hands provide scaling Spell Power or Healing instead of Attack Power or Defense.
-- **Standard Authentic WoW Armor Invariants:** Plate is Plate (level 40+ requirement), Mail is Mail (level 1+), Leather is Leather, and Cloth is Cloth. No artificial armor morphing or cross-armor type shifting; gear behaves cleanly according to standard World of Warcraft class proficiencies.
-- **Configurable bonus XP:** Shoulder **10%**, chest **10%**, ring **5% each**, trinket **0% each** by default (totaling **+30%** bonus XP with standard full set). The bonus is evaluated by equipment slot on the `OnGiveXP` hook, and the final effective percentage is capped at 200%. Weapon heirlooms do not contribute bonus XP.
-- **Durability Maintenance:** Equipped heirlooms are immune to durability decay or automatically maintained at full repair.
-- **Capital City Dual Vendors:**
-  - **Stormwind Bank (Alliance)**: `Kaelen Dawnbrow` (Armor & Jewelry) and `Branden Stormforged` (Weapons & Shields). Faction `12` (Stormwind).
-  - **Orgrimmar Bank (Horde)**: `Krag'jin` (Armor & Jewelry) and `Gorrok Warsong` (Weapons & Shields). Faction `29` (Orgrimmar).
-  - Configured with `npc_flags = 5` (`UNIT_NPC_FLAG_GOSSIP | UNIT_NPC_FLAG_VENDOR`) for seamless interaction.
-- **Bot-compatible hook design:** Uses clean player/session hooks rather than invasive dependencies on TortoiseBots internals.
+| Character level | New armor choices | New weapon seals | Total armor choices | Total weapon seals |
+| --- | ---: | ---: | ---: | ---: |
+| 10 | 1 | 2 | 1 | 2 |
+| 20 | 2 | 1 | 3 | 3 |
+| 30 | 1 | 1 | 4 | 4 |
+| 40 | 2 | 1 | 6 | 5 |
+| 50 | 1 | 1 | 7 | 6 |
+| 55 | 1 | 0 | 8 | 6 |
 
----
+Characters receive bound vouchers as in-game mail attachments when they reach a bracket that grants new choices. The armor curator sends Armorer's Writs, and the weaponmaster sends Weaponmaster's Seals in a separate letter. Returning characters receive vouchers for any earned choices they have yet to spend. The module checks the mailbox, bags, and bank before issuing replacements.
 
-## Catalog & Vendor Overview
+Unused choices carry forward. If two characters each unlock eight different armor families, a third character can browse all sixteen and claim any they can equip. Claims spend none of the third character's own choices. Each character can hold one copy of each family across equipment, bags, and bank storage. Claims and owned gear scale up to `Heirloom.Scaling.MaxLevel` (default 60).
 
-The heirloom armory consists of **162** distinct archetypes spanning 60 levels (9,720 templates in `0001_custom_heirloom_items.sql`):
-- **111 Armor & Jewelry pieces** sold by the **Curator of Antiquities**:
-  - Field Plate Armor (8 slots × 3 roles = 24 items)
-  - Banded Mail Armor (8 slots × 3 roles = 24 items)
-  - Blackened Defias Leather Armor (8 slots × 3 roles = 24 items)
-  - Mystic's Cloth Armor (8 slots × 3 roles = 24 items)
-  - Cloaks, Rings, and Trinkets (5 slots × 3 roles = 15 items)
-- **51 Weapons, Ranged & Off-Hands** sold by the **Master of Weapons**:
-  - 1H Swords, 2H Swords, 1H Axes, 2H Axes, 1H Maces, 2H Maces
-  - Daggers, Fist Weapons, Polearms, Staves
-  - Bows, Guns, Crossbows, Wands, Thrown Weapons
-  - Shields and Caster Off-Hands (17 categories × 3 roles = 51 items)
+## Rings and trinkets
 
-Each family uses a base entry divisible by 100. The item template for a character of level `L` is:
-```text
-Item Entry = FamilyBase + clamp(characterLevel, 1, 60)
-```
-For example, the Vindicator Banded Helm (Mail DPS) has base `904000`:
-- Level 1: `904001`
-- Level 20: `904020`
-- Level 60: `904060`
+The Heirloom Armorer also stocks six rings and six trinkets. Guardian, Blessed, and Vindicator each have two of each type. Every piece has its own flavor text and individual stats or equip effect. Ring stats follow the server's rare-ring budget at the heirloom's tier. Accessories work with any armor type.
 
-For full item lists and command references, see [Heirloom Armory Guide](docs/HEIRLOOM_GUIDE.md).
+Characters receive **one Curator's Token** at each of levels **10, 20, 30, and 40** by default. Each new accessory costs one token, so four choices are available by level 40, enough for two rings and two trinkets. The armorer sends accessory tokens in their own letter. Accessories join the same account collection with their own allowance, and unlocked pieces are free for eligible alts to claim.
 
----
+## Armor set bonuses
+
+The armor curator offers eleven eight-piece sets across plate, mail, leather, and cloth. Before the native tier, each set gives cumulative bonuses for **2, 4, or 8** matching pieces. Guardian sets focus on survival, Blessed sets on healing, Vindicator sets on physical attacks, and Arcane cloth on spell damage. Each set uses the appearance of an existing Tortoise set. At heirloom tiers **47–55**, depending on the set, the pieces gain the matching stock set ID and use its original bonuses and native tooltip. Earlier tiers keep the module's scaled 2-, 4-, and 8-piece bonuses. Item stats continue to scale at every tier. See the player guide for the matching sets and their unlock tiers.
+
+Spending all eight default armor choices on the same set completes it by level 55. Plate appears in the shop at all levels. Redeeming and equipping it require plate proficiency.
+
+## Fresh installation
+
+Place the module under the Tortoise core's modules directory and install its configuration template. Import the prebuilt files into fresh Tortoise World and Characters schemas before startup, or enable the module in the core SQL updater.
+
+| Database | Install file |
+| --- | --- |
+| World | [heirloom_world.sql](data/sql/world/heirloom_world.sql) |
+| Characters | [heirloom_characters.sql](data/sql/character/heirloom_characters.sql) |
+
+The [SQL ZIP](data/heirloom_install_sql.zip) contains the same two files. The World SQL already contains all 9,720 heirloom templates, with 60 levels for each of 162 families. The Characters SQL starts with an empty collection table. The files can be imported again without clearing collection data.
+
+With `Heirloom.Database.AutoImport = 1`, the module installs missing data from the bundled SQL. A fallback World import needs a restart because it runs after the core loads item and NPC data. `Heirloom.Database.SqlPath` points to the World SQL directory. The Characters SQL belongs in the sibling character directory.
+
+The shops use the built-in `TW_Merchant` interface in client 1.18.1.7979 and the server's addon-message channel.
 
 ## Configuration
 
-The configuration file is located at `Server/etc/modules/mod-twow-heirloom.conf` (template at `conf/mod-twow-heirloom.conf.dist`):
+`Heirloom.Collection.PerCharacterUnlocks` defaults to 1 and gives each character their own allowance. Set it to 0 for one allowance across the account. Unlocked families join the account collection in either mode.
 
-| Key | Default | Description |
-| :--- | :--- | :--- |
-| `Heirloom.Enable` | `1` | Master feature switch |
-| `Heirloom.Scaling.Enable` | `1` | Level-aware stat and prototype scaling |
-| `Heirloom.Scaling.MaxLevel` | `60` | Effective character level cap (1–60) |
-| `Heirloom.Scaling.StatMultiplier` | `1.0` | Scaling modifier (0.1–10.0) |
-| `Heirloom.BonusXP.Enable` | `1` | Bonus experience gain toggle |
-| `Heirloom.BonusXP.Rate` | `1.0` | Global XP multiplier |
-| `Heirloom.BonusXP.ShoulderPercent` | `10.0` | Bonus XP on shoulder slot (+10%) |
-| `Heirloom.BonusXP.ChestPercent` | `10.0` | Bonus XP on chest slot (+10%) |
-| `Heirloom.BonusXP.RingPercent` | `5.0` | Bonus XP per ring slot (+5% each) |
-| `Heirloom.BonusXP.TrinketPercent` | `0.0` | Bonus XP per trinket slot |
-| `Heirloom.Durability.Exempt` | `1` | Durability loss exemption |
-| `Heirloom.Announce.Enable` | `1` | In-game announcements on adaptation/XP |
-| `Heirloom.Debug.Enable` | `1` | Verbose diagnostic logging in `mangosd` |
-| `Heirloom.Database.AutoImport` | `1` | Automatically import missing SQL files on world server boot |
-| `Heirloom.Database.SqlPath` | `""` | Optional override path to `data/sql/world/` migration files |
+`Heirloom.Collection.Enable` defaults to 1. Set it to 0 to close the collection shops and suspend new unlocks and alt claims. `Heirloom.Collection.Mail.Enable = 0` lets characters spend earned choices at the shops without voucher letters.
 
----
+Use `Heirloom.Collection.Armor.Level<level>` for armor, `Heirloom.Collection.WeaponTokens.Level<level>` for weapon seals, and `Heirloom.Collection.AccessoryTokens.Level<level>` for rings and trinkets. The brackets are 10, 20, 30, 40, 50, and 55. Each setting adds the specified choices or seals. Use 0 to skip an award.
 
-## Installation & Setup
+Heirloom combat stats are benchmarked against rare leveling gear at every tier. The [balance audit](docs/BALANCE_AUDIT.md) explains the comparisons, how sparse levels are handled, and the resulting stat changes.
 
-1. Place `mod-twow-heirloom` inside `Source/tortoise-wow/modules/`.
-2. Generate CMake build files:
-   ```powershell
-   cmake -B build -S Source/tortoise-wow
-   ```
-3. Compile the world server (`mangosd.exe`).
-4. **Database Migrations**:
-   - `0001_custom_heirloom_items.sql` (9,720 templates for all 162 items across 60 levels)
-   - `0002_heirloom_vendor_npc.sql` (Stormwind Bank and Orgrimmar Bank dual curators)
-   - *With `Heirloom.Database.AutoImport = 1`, migrations import automatically on startup!*
-5. Deploy `conf/mod-twow-heirloom.conf.dist` to `Server/etc/modules/mod-twow-heirloom.conf`.
-6. Start the server.
+Review [the configuration template](conf/mod-twow-heirloom.conf.dist) for scaling, bonus XP, durability, and import settings.
 
----
-
-## Troubleshooting
-
-- **"That vendor doesn't like you":**
-  - Verify `npc_flags = 5` in `creature_template`. In Classic/vMaNGOS, vendor flag is `4` and gossip is `1` (`1 | 4 = 5`).
-  - Verify vendor factions: Stormwind curators use faction `12` (friendly to Alliance); Orgrimmar curators use faction `29` (friendly to Horde).
-- **Items appear white or missing stats:**
-  - Close the WoW client and delete the `WDB` cache directory (`WDB/itemcache.wdb`) to refresh client-side template definitions.
-- **Items do not scale on level up:**
-  - Ensure `Heirloom.Enable = 1` and `Heirloom.Scaling.Enable = 1` in `mod-twow-heirloom.conf`.
-- **Vanilla items vs Heirloom items:**
-  - `0001_custom_heirloom_items.sql` contains exclusively custom heirloom items (`900001`–`916160`). Default vanilla items (such as *Onyxia Blood Talisman* `18406` or *Beastmaster's Mantle* `22016`) are part of the standard `tw_world` database and are not altered.
-
----
-
-## Documentation Links
-
-- [Complete Heirloom Armory & Quick-Reference Guide](docs/HEIRLOOM_GUIDE.md)
-- [Technical Architecture & Hook Specification](docs/ARCHITECTURE.md)
+[Player guide](docs/HEIRLOOM_GUIDE.md) · [Technical notes](docs/ARCHITECTURE.md)

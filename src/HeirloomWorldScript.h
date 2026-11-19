@@ -6,6 +6,7 @@
 #ifndef _HEIRLOOM_WORLD_SCRIPT_H
 #define _HEIRLOOM_WORLD_SCRIPT_H
 
+bool IsHeirloomCollectionReady();
 void AddHeirloomWorldScripts();
 
 #endif // _HEIRLOOM_WORLD_SCRIPT_H

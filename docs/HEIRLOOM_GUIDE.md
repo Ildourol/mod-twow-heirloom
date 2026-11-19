@@ -1,180 +1,79 @@
-# Heirloom Module — Complete Armory & Operator Guide
+# Heirloom collection
 
-A comprehensive technical manual and quick-reference armory guide for **mod-twow-heirloom** on Turtle WoW (client 1.12.1 / 1.18.1).
+| City | Armor vendor | Weapons vendor |
+| --- | --- | --- |
+| Stormwind Bank | Kaelen Dawnbrow | Branden Stormforged |
+| Orgrimmar Bank | Krag'jin | Gorrok Warsong |
 
----
+The first choices are earned at level **10**. By level **55**, the shipped progression gives each character enough choices for one eight-piece armor set and six weapon seals.
 
-## 1. Core Principles & Scaling Architecture
+| Character level | New armor choices | New weapon seals | Total armor choices | Total weapon seals |
+| --- | ---: | ---: | ---: | ---: |
+| 10 | 1 | 2 | 1 | 2 |
+| 20 | 2 | 1 | 3 | 3 |
+| 30 | 1 | 1 | 4 | 4 |
+| 40 | 2 | 1 | 6 | 5 |
+| 50 | 1 | 1 | 7 | 6 |
+| 55 | 1 | 0 | 8 | 6 |
 
-All 162 heirloom pieces share the standard heirloom invariants:
-- **Quality = 5 (Legendary Orange font)** in tooltips, inventory bags, and inspection frames.
-- **Bonding = 6 (Bind to Account)** — recognized for account-bound equipment auditing.
-- **MaxDurability = 0 / Durability Exemption** — immune to durability loss, zero repair costs forever.
-- **Dynamic 1–60 Level Scaling**: The module maps 162 archetype families across 60 levels (9,720 templates in `0001_custom_heirloom_items.sql`). Every single level gained dynamically increases item stats, armor, attack power, spell power, and weapon damage.
-- **Standard Authentic WoW Armor Invariants**:
-  - **Plate is Plate**: Requires Level 40 and Plate Mail armor proficiency (Warriors & Paladins).
-  - **Mail is Mail**: Wearable from Level 1 (Warriors, Paladins, Hunters, Shamans).
-  - **Leather is Leather**: Wearable from Level 1 (Rogues, Druids, Hunters, Shamans).
-  - **Cloth is Cloth**: Wearable from Level 1 (Mages, Priests, Warlocks).
-  - *No artificial armor morphing at level 40.* Gear strictly maintains authentic World of Warcraft class proficiencies.
-- **No Meta Suffixes**: Items do not use ugly meta suffixes like `(DPS)`, `(Healer)`, or `(Tank)`. Instead, they use authentic classic prefixes:
-  - **Guardian**: Tank specialization (Maximized Stamina, Strength/Agility, Defense, and Armor).
-  - **Blessed**: Healer specialization (Maximized Intellect, Spirit, and Healing/Spell Power).
-  - **Vindicator**: DPS specialization (Maximized Attack Power, Strength/Agility, Critical Strike, or Spell Damage).
+Check an in-game mailbox after reaching a bracket. The armor curator sends **Armorer's Writs**, and the weaponmaster sends **Weaponmaster's Seals** in a separate letter. Collect each attachment before visiting its shop.
 
----
+1. Right-click the Heirloom Armorer to shop for armor. The weapons vendor offers arms, shields, and caster off-hands. Bring the matching voucher in your bags.
+2. Hover over a piece to see its stats and requirements. At the set's native tier, the tooltip displays the stock set bonuses. Right-click an item in the shop to unlock the family. A two-handed weapon costs two seals, and a one-handed weapon, ranged weapon, shield, or caster off-hand costs one. A family already unlocked is free to claim.
+3. Return when you reach the next bracket, or save choices for later. Unused choices carry forward and the curator uses the earliest earned bracket with room. Each character earns their own choices by default. Every new family they unlock becomes available across the account. A low-level alt can claim any shared family they can equip and keep their own choices for adding new pieces.
 
-## 2. In-Game Vendor Locations (Capital City Dual Curators)
+The curators use your current weapon and armor proficiencies. Plate is visible at all levels and requires plate proficiency to buy or equip. If a character has an unlocked item in the bank, move it from the bank to use it again. If you've destroyed an unlocked item, you can claim a replacement.
 
-All heirlooms are available for purchase for **0 copper (100% free)** from race-appropriate Curators in the Alliance and Horde capital cities:
+Pick a slot where you expect long gaps between upgrades. Guardian armor and the shield favor Stamina, with Defense reserved for select tank gear. Vindicator melee pieces favor physical attributes and some Attack Power. Bows, guns, crossbows, and thrown weapons favor Agility. Arcane gear favors Intellect and spell damage. Blessed caster gear favors Intellect and healing, including a one-handed mace and staff. Each piece follows a rare-item benchmark for its slot, armor material, or weapon type. Chest pieces carry more stats than smaller slots. A caster staff can carry a larger spell bonus than a wand or off-hand.
 
-### A. Stormwind City (Trade District Bank — Alliance)
-- **Curator of Antiquities (Armor & Jewelry)**: `Kaelen Dawnbrow` (Entry `2000201` / GUID `3000201`)
-  - **Location**: Stormwind Bank interior hall (`Map 0`, `X: -8925.25`, `Y: 632.63`, `Z: 99.52`, `O: 5.30`).
-  - **Stock**: 111 Armor pieces (Plate, Mail, Leather, Cloth sets), Cloaks, Rings, and Trinkets.
-- **Master of Weapons (Weapons, Ranged & Shields)**: `Branden Stormforged` (Entry `2000221` / GUID `3000221`)
-  - **Location**: Stormwind Bank interior hall (`Map 0`, `X: -8924.00`, `Y: 634.20`, `Z: 99.52`, `O: 5.29`).
-  - **Stock**: 51 Weapons, Ranged weapons, Shields, and Off-hands.
+## Rings and trinkets
 
-### B. Orgrimmar (Valley of Strength Bank — Horde)
-- **Curator of Antiquities (Armor & Jewelry)**: `Krag'jin` (Entry `2000204` / GUID `3000204`)
-  - **Location**: Orgrimmar Bank interior, next to the banker counter (`Map 1`, `X: 1627.50`, `Y: -4370.20`, `Z: 11.81`, `O: 3.59`).
-  - **Stock**: 111 Armor pieces (Plate, Mail, Leather, Cloth sets), Cloaks, Rings, and Trinkets.
-- **Master of Weapons (Weapons, Ranged & Shields)**: `Gorrok Warsong` (Entry `2000224` / GUID `3000224`)
-  - **Location**: Orgrimmar Bank interior, standing beside Krag'jin (`Map 1`, `X: 1629.00`, `Y: -4368.50`, `Z: 11.81`, `O: 3.59`).
-  - **Stock**: 51 Weapons, Ranged weapons, Shields, and Off-hands.
+Find the trinkets and rings at the end of the Heirloom Armorer's stock. Right-click to unlock a piece for **one Curator's Token**. The armorer mails one token at each of these default milestones.
 
-> **Dynamic Level-Matched Stock**: When a player interacts with any curator, `OnGossipHello` detects the character's exact level (1–60) and dynamically renders the vendor stock with the exact level-matching items!
+| Level | Tokens in the letter | Total accessory choices earned |
+| --- | ---: | ---: |
+| 10 | 1 | 1 |
+| 20 | 1 | 2 |
+| 30 | 1 | 3 |
+| 40 | 1 | 4 |
 
----
+Each role has two named rings and two distinct trinkets. You can mix them across roles and wear them with any armor. The equipped pieces contribute their individual stats and effects. Guardian trinkets grant armor or Defense, Blessed trinkets grant healing or mana regeneration, and Vindicator trinkets grant Attack Power or physical critical strike chance. Fixed equip effects use stock tooltip lines, and each ring and trinket has its own flavor text. Ring stats scale using the rare-ring benchmark for the heirloom's tier.
 
-## 3. How Item IDs Work
+## Armor sets
 
-Each of the 162 heirloom pieces has a **Family Base ID** divisible by 100. The item template for a character of level `L` (1 to 60) is:
-```text
-Item Entry = FamilyBase + clamp(characterLevel, 1, 60)
-```
+The armorer lists plate, mail, leather, and cloth in that order. Within each material, Guardian comes first, then Vindicator or Arcane, then Blessed, where available.
 
-For example:
-- **Guardian Field Plate Helmet** (Family Base `900000`):
-  - At level 1: `900001` (`.additem 900001`)
-  - At level 20: `900020` (`.additem 900020`)
-  - At level 40: `900040` (`.additem 900040`)
-  - At level 60: `900060` (`.additem 900060`)
-- **Vindicator Blackened Defias Armor** (Family Base `906600`):
-  - At level 1: `906601` (`.additem 906601`)
-  - At level 60: `906660` (`.additem 906660`)
+A full set consists of the helm, shoulders, chest, bracers, gloves, belt, leggings, and boots. Below the native tier, wearing **2, 4, or 8** matching pieces unlocks cumulative, scaled bonuses. Alternate Vindicator cloth appearances count toward Arcane Mystic's Vestments.
 
-As the character levels up, any heirloom equipped or stored in the character's bags automatically increments its ID to match the new level.
+| Material | Bulwark | Renewal | Arms or Spellcraft |
+| --- | --- | --- | --- |
+| Plate | Guardian adds Armor, Defense, and block | Blessed adds Healing, Intellect, and spell crit | Vindicator adds Strength, melee Attack Power, and physical crit |
+| Mail | Guardian adds Armor, Stamina, and dodge | Blessed adds Healing, Intellect, and spell crit | Vindicator adds melee and ranged Attack Power and physical crit |
+| Leather | Guardian adds Stamina, Agility, and dodge | Blessed adds Healing, Spirit, and spell crit | Vindicator adds Agility, Stamina, and physical crit |
+| Cloth | | Blessed adds Healing, Spirit, and spell crit | Arcane adds Spell Damage, Intellect, and spell crit |
 
----
+The low-tier flat bonuses scale with the heirloom tier. Their eight-piece **+1%** crit, dodge, or block effect starts at tier 40. The stock set takes over at the listed tier. The stock client supplies its original bonus text and values. Native pieces can count together with ordinary drops from the same set. With automatic scaling disabled, the native set counts only equipped pieces whose existing templates already carry the stock set ID. As soon as one piece in a family carries that ID, the custom bonus for that family yields to the stock set rules.
 
-## 4. Complete Armor & Accessory Catalog (111 Items)
+| Heirloom set | Stock set | Native tier |
+| --- | --- | ---: |
+| Guardian Field Plate | Imperial Plate | 47 |
+| Blessed Field Plate | Lawbringer Armor | 55 |
+| Vindicator Field Plate | Battlegear of Valor | 52 |
+| Guardian Banded Mail | Beastmaster Armor | 52 |
+| Blessed Banded Mail | The Elements | 52 |
+| Vindicator Banded Mail | Beaststalker Armor | 52 |
+| Guardian Defias Leathers | Wildheart Raiment | 52 |
+| Blessed Defias Leathers | Moonheart Raiment | 52 |
+| Vindicator Defias Leathers | Shadowcraft Armor | 52 |
+| Arcane Mystic's Vestments | Magister's Regalia | 52 |
+| Blessed Mystic's Vestments | Vestments of the Devout | 52 |
 
-### A. Plate Armor — Field Plate Collection (8 Pieces × 3 Roles)
-*Visual Model: Classic Field Plate set*
+Each piece uses one armor unlock. With the default allowance, you can earn the two-piece bonus at level 20, the four-piece bonus at 30, and the eight-piece bonus at 55 if you choose matching pieces. If you want plate, save your armor choices until your character can wear it.
 
-| Slot | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
-| :--- | :--- | :--- | :--- |
-| **Head** | `900000` (*Guardian Field Plate Helmet*) | `900800` (*Blessed Field Plate Helmet*) | `901600` (*Vindicator Field Plate Helmet*) |
-| **Shoulders** (+10% XP) | `900100` (*Guardian Field Plate Pauldrons*) | `900900` (*Blessed Field Plate Pauldrons*) | `901700` (*Vindicator Field Plate Pauldrons*) |
-| **Chest** (+10% XP) | `900200` (*Guardian Field Plate Armor*) | `901000` (*Blessed Field Plate Armor*) | `901800` (*Vindicator Field Plate Armor*) |
-| **Wrists** | `900300` (*Guardian Field Plate Vambraces*) | `901100` (*Blessed Field Plate Vambraces*) | `901900` (*Vindicator Field Plate Vambraces*) |
-| **Hands** | `900400` (*Guardian Field Plate Gauntlets*) | `901200` (*Blessed Field Plate Gauntlets*) | `902000` (*Vindicator Field Plate Gauntlets*) |
-| **Waist** | `900500` (*Guardian Field Plate Girdle*) | `901300` (*Blessed Field Plate Girdle*) | `902100` (*Vindicator Field Plate Girdle*) |
-| **Legs** | `900600` (*Guardian Field Plate Leggings*) | `901400` (*Blessed Field Plate Leggings*) | `902200` (*Vindicator Field Plate Leggings*) |
-| **Feet** | `900700` (*Guardian Field Plate Boots*) | `901500` (*Blessed Field Plate Boots*) | `902300` (*Vindicator Field Plate Boots*) |
+## Set custom allowances
 
----
+Use `Heirloom.Collection.Armor.Level<level>` for armor and `Heirloom.Collection.WeaponTokens.Level<level>` for weapon seals for levels 10, 20, 30, 40, 50, and 55. Use `Heirloom.Collection.AccessoryTokens.Level<level>` for accessory awards. Collection mail sends one token per choice. Each configured value adds that many choices or weapon seals. For example, set `Heirloom.Collection.Armor.Level10 = 2` to grant two armor choices at the first bracket. `Heirloom.Collection.Mail.Enable = 0` disables voucher letters and lets you spend your earned choices directly at the shop. Previously unlocked items remain available if allowances change. Set `Heirloom.Collection.PerCharacterUnlocks = 0` to make the allowances account-wide again.
 
-### B. Mail Armor — Banded Mail Collection (8 Pieces × 3 Roles)
-*Visual Model: Classic Banded Mail set*
+## Experience and scaling
 
-| Slot | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
-| :--- | :--- | :--- | :--- |
-| **Head** | `902400` (*Guardian Banded Helm*) | `903200` (*Blessed Banded Helm*) | `904000` (*Vindicator Banded Helm*) |
-| **Shoulders** (+10% XP) | `902500` (*Guardian Banded Pauldrons*) | `903300` (*Blessed Banded Pauldrons*) | `904100` (*Vindicator Banded Pauldrons*) |
-| **Chest** (+10% XP) | `902600` (*Guardian Banded Armor*) | `903400` (*Blessed Banded Armor*) | `904200` (*Vindicator Banded Armor*) |
-| **Wrists** | `902700` (*Guardian Banded Bracers*) | `903500` (*Blessed Banded Bracers*) | `904300` (*Vindicator Banded Bracers*) |
-| **Hands** | `902800` (*Guardian Banded Gauntlets*) | `903600` (*Blessed Banded Gauntlets*) | `904400` (*Vindicator Banded Gauntlets*) |
-| **Waist** | `902900` (*Guardian Banded Girdle*) | `903700` (*Blessed Banded Girdle*) | `904500` (*Vindicator Banded Girdle*) |
-| **Legs** | `903000` (*Guardian Banded Leggings*) | `903800` (*Blessed Banded Leggings*) | `904600` (*Vindicator Banded Leggings*) |
-| **Feet** | `903100` (*Guardian Banded Boots*) | `903900` (*Blessed Banded Boots*) | `904700` (*Vindicator Banded Boots*) |
-
----
-
-### C. Leather Armor — Blackened Defias Collection (8 Pieces × 3 Roles)
-*Visual Model: Classic Blackened Defias set & Bandit pieces*
-
-| Slot | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
-| :--- | :--- | :--- | :--- |
-| **Head** | `904800` (*Guardian Red Defias Mask*) | `905600` (*Blessed Red Defias Mask*) | `906400` (*Vindicator Red Defias Mask*) |
-| **Shoulders** (+10% XP) | `904900` (*Guardian Bandit Shoulders*) | `905700` (*Blessed Bandit Shoulders*) | `906500` (*Vindicator Bandit Shoulders*) |
-| **Chest** (+10% XP) | `905000` (*Guardian Blackened Defias Armor*) | `905800` (*Blessed Blackened Defias Armor*) | `906600` (*Vindicator Blackened Defias Armor*) |
-| **Wrists** | `905100` (*Guardian Bandit Bracers*) | `905900` (*Blessed Bandit Bracers*) | `906700` (*Vindicator Bandit Bracers*) |
-| **Hands** | `905200` (*Guardian Blackened Defias Gloves*) | `906000` (*Blessed Blackened Defias Gloves*) | `906800` (*Vindicator Blackened Defias Gloves*) |
-| **Waist** | `905300` (*Guardian Blackened Defias Belt*) | `906100` (*Blessed Blackened Defias Belt*) | `906900` (*Vindicator Blackened Defias Belt*) |
-| **Legs** | `905400` (*Guardian Blackened Defias Leggings*) | `906200` (*Blessed Blackened Defias Leggings*) | `907000` (*Vindicator Blackened Defias Leggings*) |
-| **Feet** | `905500` (*Guardian Blackened Defias Boots*) | `906300` (*Blessed Blackened Defias Boots*) | `907100` (*Vindicator Blackened Defias Boots*) |
-
----
-
-### D. Cloth Armor — Mystic's Collection (8 Pieces × 3 Roles)
-*Visual Model: Classic Mystic's set & Shadow Hood*
-
-| Slot | Arcane (Spell Power) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
-| :--- | :--- | :--- | :--- |
-| **Head** | `907200` (*Arcane Shadow Hood*) | `908000` (*Blessed Shadow Hood*) | `908800` (*Vindicator Shadow Hood*) |
-| **Shoulders** (+10% XP) | `907300` (*Arcane Mystic's Shoulder Pads*) | `908100` (*Blessed Mystic's Shoulder Pads*) | `908900` (*Vindicator Mystic's Shoulder Pads*) |
-| **Chest** (+10% XP) | `907400` (*Arcane Mystic's Robe*) | `908200` (*Blessed Mystic's Robe*) | `909000` (*Vindicator Mystic's Robe*) |
-| **Wrists** | `907500` (*Arcane Mystic's Bracelets*) | `908300` (*Blessed Mystic's Bracelets*) | `909100` (*Vindicator Mystic's Bracelets*) |
-| **Hands** | `907600` (*Arcane Mystic's Gloves*) | `908400` (*Blessed Mystic's Gloves*) | `909200` (*Vindicator Mystic's Gloves*) |
-| **Waist** | `907700` (*Arcane Mystic's Belt*) | `908500` (*Blessed Mystic's Belt*) | `909300` (*Vindicator Mystic's Belt*) |
-| **Legs** | `907800` (*Arcane Mystic's Woolies*) | `908600` (*Blessed Mystic's Woolies*) | `909400` (*Vindicator Mystic's Woolies*) |
-| **Feet** | `907900` (*Arcane Mystic's Slippers*) | `908700` (*Blessed Mystic's Slippers*) | `909500` (*Vindicator Mystic's Slippers*) |
-
----
-
-### E. Jewelry & Accessories (5 Slots × 3 Roles)
-
-| Slot | Tank (Guardian) Base | Healer (Blessed) Base | DPS (Vindicator) Base |
-| :--- | :--- | :--- | :--- |
-| **Back (Cloak)** | `909600` (*Guardian Drape of Antiquity*) | `909700` (*Blessed Drape of Antiquity*) | `909800` (*Vindicator Drape of Antiquity*) |
-| **Finger (Ring 1)** (+5% XP) | `909900` (*Guardian Signet of the Ancestor*) | `910000` (*Blessed Signet of the Ancestor*) | `910100` (*Vindicator Signet of the Ancestor*) |
-| **Finger (Ring 2)** (+5% XP) | `910200` (*Guardian Band of the Paragon*) | `910300` (*Blessed Band of the Paragon*) | `910400` (*Vindicator Band of the Paragon*) |
-| **Trinket 1** | `910500` (*Guardian Insignia of the Vanguard*) | `910600` (*Blessed Insignia of the Vanguard*) | `910700` (*Vindicator Insignia of the Vanguard*) |
-| **Trinket 2** | `910800` (*Guardian Talisman of Resolve*) | `910900` (*Blessed Talisman of Resolve*) | `911000` (*Vindicator Talisman of Resolve*) |
-
----
-
-## 5. Complete Weapons, Ranged & Shields Catalog (51 Items)
-
-Sold exclusively by the **Master of Weapons** in Stormwind Bank and Orgrimmar Bank:
-
-| Weapon Type | Iconic Visual Reference | Guardian / Arcane Base | Blessed (Healer) Base | Vindicator Base |
-| :--- | :--- | :--- | :--- | :--- |
-| **1H Sword** | Cruel Barb | `911100` (*Guardian Cruel Barb*) | `911200` (*Blessed Cruel Barb*) | `911300` (*Vindicator Cruel Barb*) |
-| **2H Sword** | Whirlwind Sword | `911400` (*Guardian Whirlwind Sword*) | `911500` (*Blessed Whirlwind Sword*) | `911600` (*Vindicator Whirlwind Sword*) |
-| **1H Axe** | Butcher's Cleaver | `911700` (*Guardian Butcher's Cleaver*) | `911800` (*Blessed Butcher's Cleaver*) | `911900` (*Vindicator Butcher's Cleaver*) |
-| **2H Axe** | Ravager | `912000` (*Guardian Ravager*) | `912100` (*Blessed Ravager*) | `912200` (*Vindicator Ravager*) |
-| **1H Mace** | The Hand of Antu'sul | `912300` (*Guardian Hand of Antu'sul*) | `912400` (*Blessed Hand of Antu'sul*) | `912500` (*Vindicator Hand of Antu'sul*) |
-| **2H Mace** | Mograine's Might | `912600` (*Guardian Mograine's Might*) | `912700` (*Blessed Mograine's Might*) | `912800` (*Vindicator Mograine's Might*) |
-| **Dagger** | Black Menace | `912900` (*Guardian Black Menace*) | `913000` (*Blessed Black Menace*) | `913100` (*Vindicator Black Menace*) |
-| **Fist Weapon** | Thekal's Grasp | `913200` (*Guardian Thekal's Grasp*) | `913300` (*Blessed Thekal's Grasp*) | `913400` (*Vindicator Thekal's Grasp*) |
-| **Polearm** | Grimlok's Charge | `913500` (*Guardian Grimlok's Charge*) | `913600` (*Blessed Grimlok's Charge*) | `913700` (*Vindicator Grimlok's Charge*) |
-| **Staff** | Illusionary Rod | `915300` (*Arcane Illusionary Rod* - Spell Power) | `915400` (*Blessed Illusionary Rod* - Healing) | `915500` (*Vindicator Illusionary Rod* - Spell Power) |
-| **Bow** | Gryphonwing Long Bow | `913800` (*Guardian Gryphonwing Long Bow*) | `913900` (*Blessed Gryphonwing Long Bow*) | `914000` (*Vindicator Gryphonwing Long Bow*) |
-| **Gun** | Precisely Calibrated Boomstick | `914100` (*Guardian Boomstick*) | `914200` (*Blessed Boomstick*) | `914300` (*Vindicator Boomstick*) |
-| **Crossbow** | Blackcrow | `914400` (*Guardian Blackcrow*) | `914500` (*Blessed Blackcrow*) | `914600` (*Vindicator Blackcrow*) |
-| **Wand** | Bonecreeper Stylus | `914700` (*Arcane Bonecreeper Stylus* - Spell Power) | `914800` (*Blessed Bonecreeper Stylus* - Healing) | `914900` (*Vindicator Bonecreeper Stylus* - Spell Power) |
-| **Thrown Weapon** | Deadly Throwing Axe | `915000` (*Guardian Deadly Throwing Axe*) | `915100` (*Blessed Deadly Throwing Axe*) | `915200` (*Vindicator Deadly Throwing Axe*) |
-| **Shield** | Aegis of the Scarlet Commander | `915900` (*Guardian Aegis*) | `916000` (*Blessed Aegis*) | `916100` (*Vindicator Aegis*) |
-| **Caster Off-Hand** | Orb of Lorica | `915600` (*Arcane Orb of Lorica* - Spell Power) | `915700` (*Blessed Orb of Lorica* - Healing) | `915800` (*Vindicator Orb of Lorica* - Spell Power) |
-
----
-
-## 6. Coexistence with Vanilla Items (No Overwrites)
-
-- `0001_custom_heirloom_items.sql` contains exclusively custom items in the ID range `900001` through `916160`.
-- **Vanilla items remain 100% untouched**: Vanilla epics and dungeon set pieces (such as *Onyxia Blood Talisman* `18406`, *Beastmaster's Mantle* `22016`, or *Darkmantle Spaulders* `22008`) are NOT included, altered, or overwritten in the heirloom SQL.
-- **Client Cache Notice**: If an item name appears white or stats do not refresh immediately in your WoW client, exit the game, delete `WDB/itemcache.wdb`, and log back in.
+Qualifying shoulders and chests each grant 10% bonus XP by default. Rings and trinkets grant no bonus XP. Item tooltips show these default bonuses. Server configuration determines the actual rate. Curators award gear at the lower of the player's level and the server's scaling cap. With automatic scaling disabled, items retain their current tier after the claim.

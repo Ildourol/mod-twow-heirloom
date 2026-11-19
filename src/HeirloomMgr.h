@@ -13,7 +13,6 @@
 class Player;
 class Item;
 class Unit;
-struct ItemPrototype;
 
 class HeirloomMgr
 {
@@ -21,28 +20,25 @@ public:
     static HeirloomMgr& Instance();
 
     [[nodiscard]] bool IsHeirloomItem(ItemPrototype const* proto) const;
+    static uint8 GetScaledLevel(Player const* player);
+    static uint32 GetFamily(uint32 entry);
+    static uint32 GetCanonicalFamily(uint32 family);
+    static bool HasOwnedFamily(Player* player, uint32 family);
 
     void HandlePlayerLogin(Player* player);
     void HandlePlayerLogout(Player* player);
-    void HandlePlayerLevelChanged(Player* player, uint8 oldLevel);
     void HandlePlayerUpdate(Player* player, uint32 diff);
     void HandlePlayerGiveXP(Player* player, uint32& amount, Unit* victim);
-
-    void RecalculatePlayerHeirlooms(Player* player, bool force = false);
-    void EnsureHeirloomDurability(Player* player, Item* item, uint8 slot);
-    void AdaptAllPlayerHeirlooms(Player* player);
-    static uint32 GetScaledHeirloomEntry(uint32 currentEntry, uint8 targetLevel);
-
-    [[nodiscard]] float CalculatePlayerBonusXPPercent(Player* player) const;
+    void AdaptAllPlayerHeirlooms(Player* player, bool refreshTooltips = false);
 
 private:
     HeirloomMgr() = default;
 
-    void ApplySlotDelta(Player* player, HeirloomSlotDelta const& delta, uint8 slot, bool apply);
-    void RemoveAllDeltas(Player* player, HeirloomPlayerCache& cache);
+    static void EnsureHeirloomDurability(Player* player, Item* item, uint8 slot);
+    [[nodiscard]] float CalculatePlayerBonusXPPercent(Player* player) const;
 
-    mutable std::recursive_mutex m_mutex;
-    std::unordered_map<ObjectGuid, HeirloomPlayerCache> m_playerCaches;
+    std::mutex m_updateMutex;
+    std::unordered_map<ObjectGuid, uint32> m_updateTimers;
 };
 
 #define sHeirloomMgr HeirloomMgr::Instance()

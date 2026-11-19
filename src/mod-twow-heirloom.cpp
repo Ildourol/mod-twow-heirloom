@@ -5,11 +5,11 @@
 
 #include "HeirloomWorldScript.h"
 #include "HeirloomPlayerScript.h"
-#include "HeirloomMailScript.h"
+#include "HeirloomCuratorScript.h"
 
 void Addmod_twow_heirloomScripts()
 {
     AddHeirloomWorldScripts();
     AddHeirloomPlayerScripts();
-    AddHeirloomMailScripts();
+    AddHeirloomCuratorScripts();
 }

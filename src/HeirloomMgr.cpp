@@ -5,18 +5,60 @@
 
 #include "HeirloomMgr.h"
 #include "HeirloomConfig.h"
-#include "HeirloomFormula.h"
 #include "Objects/Player.h"
 #include "Objects/Item.h"
-#include "Objects/ItemPrototype.h"
 #include "Objects/Bag.h"
 #include "ObjectMgr.h"
 #include "World.h"
+#include "WorldSession.h"
 #include "Chat/Chat.h"
 #include "Log.h"
 
 #include <algorithm>
 #include <cmath>
+
+namespace
+{
+    constexpr uint32 UpdateIntervalMs = 1000;
+
+    bool IsCatalogEntry(uint32 entry)
+    {
+        return entry >= 900001 && entry <= 916160 && entry % 100 >= 1 && entry % 100 <= 60;
+    }
+
+    template<class Visitor>
+    bool VisitOwnedItems(Player* player, Visitor visit)
+    {
+        auto visitSlot = [&](uint8 bag, uint8 slot)
+        {
+            Item* item = player->GetItemByPos(bag, slot);
+            return item && visit(bag, slot, item);
+        };
+        for (uint8 slot = EQUIPMENT_SLOT_START; slot < INVENTORY_SLOT_ITEM_END; ++slot)
+            if (visitSlot(INVENTORY_SLOT_BAG_0, slot))
+                return true;
+        for (uint8 slot = BANK_SLOT_ITEM_START; slot < BANK_SLOT_ITEM_END; ++slot)
+            if (visitSlot(INVENTORY_SLOT_BAG_0, slot))
+                return true;
+
+        auto visitBags = [&](uint8 first, uint8 end)
+        {
+            for (uint8 bagSlot = first; bagSlot < end; ++bagSlot)
+            {
+                Item* container = player->GetItemByPos(INVENTORY_SLOT_BAG_0, bagSlot);
+                Bag* bag = container ? container->ToBag() : nullptr;
+                if (!bag)
+                    continue;
+                for (uint8 slot = 0; slot < bag->GetBagSize(); ++slot)
+                    if (visitSlot(bagSlot, slot))
+                        return true;
+            }
+            return false;
+        };
+        return visitBags(INVENTORY_SLOT_BAG_START, INVENTORY_SLOT_BAG_END) ||
+               visitBags(BANK_SLOT_BAG_START, BANK_SLOT_BAG_END);
+    }
+}
 
 HeirloomMgr& HeirloomMgr::Instance()
 {
@@ -26,534 +68,120 @@ HeirloomMgr& HeirloomMgr::Instance()
 
 bool HeirloomMgr::IsHeirloomItem(ItemPrototype const* proto) const
 {
-    if (!proto)
-        return false;
+    return proto && (GetFamily(proto->ItemId) || proto->Bonding == HEIRLOOM_BONDING_ACCOUNT ||
+                     sHeirloomConfig.IsHeirloomItemId(proto->ItemId));
+}
 
-    // 0. Level 1-60 dynamic morphing heirlooms (900000 - 916300)
-    if (proto->ItemId >= 900000 && proto->ItemId <= 916300)
-        return true;
+uint8 HeirloomMgr::GetScaledLevel(Player const* player)
+{
+    return static_cast<uint8>(std::clamp<uint32>(player->GetLevel(), HEIRLOOM_MIN_LEVEL, sHeirloomConfig.GetMaxScalingLevel()));
+}
 
-    // 1. Explicit administrator allowlist from configuration
-    if (sHeirloomConfig.IsHeirloomItemId(proto->ItemId))
-        return true;
+uint32 HeirloomMgr::GetFamily(uint32 entry)
+{
+    return IsCatalogEntry(entry) ? entry - entry % 100 : 0;
+}
 
-    // 2. Native account-bound bonding flag (Bonding == 6 / BIND_ACCOUNT)
-    if (proto->Bonding == HEIRLOOM_BONDING_ACCOUNT)
-        return true;
+uint32 HeirloomMgr::GetCanonicalFamily(uint32 family)
+{
+    if (family >= 908800 && family <= 909500)
+        return family - 1600;
+    if (family == 914900 || family == 915500 || family == 915800)
+        return family - 200;
+    return family;
+}
 
-    return false;
+bool HeirloomMgr::HasOwnedFamily(Player* player, uint32 family)
+{
+    return VisitOwnedItems(player, [family](uint8, uint8, Item* item)
+    {
+        return GetCanonicalFamily(GetFamily(item->GetEntry())) == family;
+    });
 }
 
 void HeirloomMgr::HandlePlayerLogin(Player* player)
 {
-    if (!player)
-        return;
-
-    sLog.outString("[mod-twow-heirloom] Player %s (Level %u) logged in; auditing heirloom scaling.",
-        player->GetName(), player->GetLevel());
-
-    AdaptAllPlayerHeirlooms(player);
-    RecalculatePlayerHeirlooms(player, true);
+    AdaptAllPlayerHeirlooms(player, true);
 }
 
 void HeirloomMgr::HandlePlayerLogout(Player* player)
 {
-    if (!player)
-        return;
-
-    std::lock_guard<std::recursive_mutex> lock(m_mutex);
-    auto it = m_playerCaches.find(player->GetObjectGuid());
-    if (it != m_playerCaches.end())
-    {
-        RemoveAllDeltas(player, it->second);
-        m_playerCaches.erase(it);
-    }
-}
-
-void HeirloomMgr::HandlePlayerLevelChanged(Player* player, uint8 oldLevel)
-{
-    if (!player)
-        return;
-
-    sLog.outString("[mod-twow-heirloom] Player %s level changed from %u to %u; recalculating heirlooms.",
-        player->GetName(), oldLevel, player->GetLevel());
-
-    AdaptAllPlayerHeirlooms(player);
-    RecalculatePlayerHeirlooms(player, true);
-
-    if (player->GetSession())
-    {
-        ChatHandler(player->GetSession()).PSendSysMessage("|cff00ff00[Heirloom]|r Your heirloom equipment has adapted to Level %u!", player->GetLevel());
-    }
+    std::lock_guard<std::mutex> lock(m_updateMutex);
+    m_updateTimers.erase(player->GetObjectGuid());
 }
 
 void HeirloomMgr::HandlePlayerUpdate(Player* player, uint32 diff)
 {
-    if (!player)
+    if (!sHeirloomConfig.IsEnabled())
         return;
 
-    std::lock_guard<std::recursive_mutex> lock(m_mutex);
-    auto& cache = m_playerCaches[player->GetObjectGuid()];
-
-    // FINDING-01 & FINDING-05: Feature-decoupled execution matrix
-    bool isModuleEnabled = sHeirloomConfig.IsEnabled();
-    bool isScalingEnabled = sHeirloomConfig.IsScalingEnabled();
-    bool isDurabilityEnabled = sHeirloomConfig.IsDurabilityExemptEnabled();
-    uint32 currentConfigGen = sHeirloomConfig.GetConfigGeneration();
-
-    // Master disable cleanly purges all deltas and halts
-    if (!isModuleEnabled)
     {
-        if (cache.moduleActiveWhenApplied || cache.scalingActiveWhenApplied)
+        std::lock_guard<std::mutex> lock(m_updateMutex);
+        uint32& remaining = m_updateTimers[player->GetObjectGuid()];
+        if (diff < remaining)
         {
-            RemoveAllDeltas(player, cache);
+            remaining -= diff;
+            return;
         }
-        return;
+        remaining = UpdateIntervalMs;
     }
 
-    // If scaling specifically was disabled (e.g. Scaling.Enable = 0),
-    // cleanly purge any active stat deltas, but continue so durability exemption can run.
-    if (!isScalingEnabled && cache.scalingActiveWhenApplied)
-    {
-        RemoveAllDeltas(player, cache);
-        cache.scalingActiveWhenApplied = false;
-    }
-
-    cache.updateTimer += diff;
-    if (cache.updateTimer < 1000 && cache.appliedConfigGen == currentConfigGen)
-        return;
-
-    cache.updateTimer = 0;
-
-    if (isScalingEnabled)
-    {
-        bool guidsChanged = false;
-        bool breakStateChanged = false;
-        for (uint8 slot = 0; slot < HEIRLOOM_EQUIPMENT_SLOTS_COUNT; ++slot)
-        {
-            Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-            uint64 currentGuid = item ? item->GetObjectGuid().GetRawValue() : 0;
-            if (currentGuid != cache.equippedGuids[slot])
-            {
-                guidsChanged = true;
-                break;
-            }
-
-            bool itemBroken = item ? item->IsBroken() : false;
-            if (itemBroken != cache.slots[slot].isBroken)
-            {
-                breakStateChanged = true;
-                break;
-            }
-        }
-
-        uint8 effectiveLvl = HeirloomFormula::GetEffectiveLevel(player->GetLevel(), sHeirloomConfig.GetMaxScalingLevel());
-        bool configGenChanged = (cache.appliedConfigGen != currentConfigGen);
-
-        if (guidsChanged || breakStateChanged || effectiveLvl != cache.lastKnownLevel || configGenChanged)
-        {
-            if (sHeirloomConfig.IsDebugEnabled())
-            {
-                sLog.outString("[mod-twow-heirloom] Player %s heirloom equipment state change detected (guids=%d, broken=%d, lvl %u->%u, configGen=%d); auditing scaling.",
-                    player->GetName(), guidsChanged ? 1 : 0, breakStateChanged ? 1 : 0, cache.lastKnownLevel, effectiveLvl, configGenChanged ? 1 : 0);
-            }
-
-            if (guidsChanged || effectiveLvl != cache.lastKnownLevel)
-            {
-                AdaptAllPlayerHeirlooms(player);
-            }
-
-            for (uint8 slot = 0; slot < HEIRLOOM_EQUIPMENT_SLOTS_COUNT; ++slot)
-            {
-                Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-                ItemPrototype const* proto = item ? item->GetProto() : nullptr;
-                uint64 currentGuid = item ? item->GetObjectGuid().GetRawValue() : 0;
-                bool isHeirloom = IsHeirloomItem(proto);
-
-                // REVIEW POINT 3: Repair broken heirloom BEFORE querying broken status
-                // to eliminate 1-second lag and allow immediate delta application.
-                if (item && isHeirloom && isDurabilityEnabled)
-                {
+    AdaptAllPlayerHeirlooms(player);
+    if (sHeirloomConfig.IsDurabilityExemptEnabled())
+        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+            if (Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
+                if (IsHeirloomItem(item->GetProto()))
                     EnsureHeirloomDurability(player, item, slot);
-                }
-
-                bool isBroken = item ? item->IsBroken() : false;
-
-                // Unapply existing delta if item changed, broken, or config/level changed
-                if (cache.slots[slot].active)
-                {
-                    if (!isHeirloom || isBroken || currentGuid != cache.slots[slot].itemGuid ||
-                        effectiveLvl != cache.lastKnownLevel || configGenChanged)
-                    {
-                        ApplySlotDelta(player, cache.slots[slot], slot, false);
-                        cache.slots[slot].Reset();
-                    }
-                }
-
-                // Apply new delta if heirloom is equipped and not broken
-                if (isHeirloom && !isBroken && proto)
-                {
-                    if (!cache.slots[slot].active)
-                    {
-                        HeirloomSlotDelta delta;
-                        uint8 baseLvl = HeirloomFormula::GetBaseItemLevel(proto);
-                        double ratio = HeirloomFormula::CalculateScalingRatio(baseLvl, effectiveLvl);
-                        float mult = sHeirloomConfig.GetStatMultiplier();
-
-                        for (uint8 i = 0; i < MAX_ITEM_PROTO_STATS; ++i)
-                        {
-                            int32 baseStatVal = proto->ItemStat[i].ItemStatValue;
-                            uint32 statType = proto->ItemStat[i].ItemStatType;
-                            if (baseStatVal != 0 && statType < MAX_ITEM_MOD)
-                            {
-                                // Protective module delta refusal: reject scaling deltas for pathological base values outside sanity bounds.
-                                // Note: Native base stat remains completely unmodified as authored in the database.
-                                if (baseStatVal < HEIRLOOM_MIN_VALID_NATIVE_STAT || baseStatVal > HEIRLOOM_MAX_VALID_NATIVE_STAT)
-                                {
-                                    if (sHeirloomConfig.IsDebugEnabled())
-                                    {
-                                        sLog.outDetail("[mod-twow-heirloom] Item %u has native stat %u (val %d) outside protective bounds [%d, %d]; refusing scaling delta (native stat remains unmodified)",
-                                            proto->ItemId, statType, baseStatVal, HEIRLOOM_MIN_VALID_NATIVE_STAT, HEIRLOOM_MAX_VALID_NATIVE_STAT);
-                                    }
-                                    continue;
-                                }
-
-                                int32 scaledVal = HeirloomFormula::ScaleStat(baseStatVal, ratio, mult);
-                                int64 diff = static_cast<int64>(scaledVal) - static_cast<int64>(baseStatVal);
-                                delta.statDeltas[i] = static_cast<int32>(diff);
-                                delta.statTypes[i] = statType;
-                            }
-                        }
-
-                        if (proto->Armor > 0)
-                        {
-                            if (proto->Armor <= HEIRLOOM_MAX_VALID_NATIVE_ARMOR)
-                            {
-                                uint32 scaledArmor = HeirloomFormula::ScaleArmor(proto->Armor, ratio, mult);
-                                int64 armorDiff = static_cast<int64>(scaledArmor) - static_cast<int64>(proto->Armor);
-                                delta.armorDelta = static_cast<int32>(armorDiff);
-                            }
-                            else if (sHeirloomConfig.IsDebugEnabled())
-                            {
-                                sLog.outDetail("[mod-twow-heirloom] Item %u has native armor %u outside protective bounds [0, %u]; refusing armor scaling delta (native armor remains unmodified)",
-                                    proto->ItemId, proto->Armor, HEIRLOOM_MAX_VALID_NATIVE_ARMOR);
-                            }
-                        }
-
-                        if (proto->Block > 0)
-                        {
-                            if (proto->Block <= HEIRLOOM_MAX_VALID_NATIVE_BLOCK)
-                            {
-                                uint32 scaledBlock = HeirloomFormula::ScaleBlock(proto->Block, ratio, mult);
-                                int64 blockDiff = static_cast<int64>(scaledBlock) - static_cast<int64>(proto->Block);
-                                delta.blockDelta = static_cast<int32>(blockDiff);
-                            }
-                            else if (sHeirloomConfig.IsDebugEnabled())
-                            {
-                                sLog.outDetail("[mod-twow-heirloom] Item %u has native block %u outside protective bounds [0, %u]; refusing block scaling delta (native block remains unmodified)",
-                                    proto->ItemId, proto->Block, HEIRLOOM_MAX_VALID_NATIVE_BLOCK);
-                            }
-                        }
-
-                        // Weapon damage scaling
-                        if (proto->Class == ITEM_CLASS_WEAPON && proto->Damage[0].DamageMax > 0.0f)
-                        {
-                            float avg0 = (proto->Damage[0].DamageMin + proto->Damage[0].DamageMax) * 0.5f;
-                            float avg1 = avg0 * static_cast<float>(ratio) * mult;
-                            int32 dmgDiff = static_cast<int32>(std::round(avg1 - avg0));
-                            if (dmgDiff > 0)
-                            {
-                                delta.weaponDamageDelta = dmgDiff;
-                                if (slot == EQUIPMENT_SLOT_MAINHAND)
-                                    delta.weaponAttackType = BASE_ATTACK;
-                                else if (slot == EQUIPMENT_SLOT_OFFHAND)
-                                    delta.weaponAttackType = OFF_ATTACK;
-                                else if (slot == EQUIPMENT_SLOT_RANGED)
-                                    delta.weaponAttackType = RANGED_ATTACK;
-                            }
-                        }
-
-                        delta.itemEntry = proto->ItemId;
-                        delta.itemGuid = currentGuid;
-                        delta.active = true;
-                        delta.isBroken = isBroken;
-
-                        ApplySlotDelta(player, delta, slot, true);
-                        cache.slots[slot] = delta;
-
-                        if (item && player->GetSession())
-                        {
-                            item->SendCreateUpdateToPlayer(player);
-                        }
-                    }
-                }
-
-                cache.slots[slot].isBroken = isBroken;
-                cache.equippedGuids[slot] = currentGuid;
-            }
-
-            // Push create update for any heirlooms stored in backpack and bags without relog
-            if (player->GetSession())
-            {
-                auto refreshBagItem = [&](Item* bagItem)
-                {
-                    if (bagItem && IsHeirloomItem(bagItem->GetProto()))
-                    {
-                        bagItem->SendCreateUpdateToPlayer(player);
-                    }
-                };
-
-                for (int i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; ++i)
-                    refreshBagItem(player->GetItemByPos(INVENTORY_SLOT_BAG_0, i));
-
-                for (int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
-                {
-                    if (Bag* pBag = (Bag*)player->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
-                    {
-                        for (uint32 j = 0; j < pBag->GetBagSize(); ++j)
-                            refreshBagItem(player->GetItemByPos(i, j));
-                    }
-                }
-            }
-
-            cache.lastKnownLevel = effectiveLvl;
-            cache.appliedConfigGen = currentConfigGen;
-            cache.moduleActiveWhenApplied = true;
-            cache.scalingActiveWhenApplied = true;
-        }
-        else if (isDurabilityEnabled)
-        {
-            for (uint8 slot = 0; slot < HEIRLOOM_EQUIPMENT_SLOTS_COUNT; ++slot)
-            {
-                Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-                if (item && IsHeirloomItem(item->GetProto()))
-                {
-                    EnsureHeirloomDurability(player, item, slot);
-                }
-            }
-        }
-    }
-    else
-    {
-        // Scaling is disabled, but module is enabled. Maintain durability exemption if configured.
-        cache.appliedConfigGen = currentConfigGen;
-        cache.moduleActiveWhenApplied = true;
-        cache.scalingActiveWhenApplied = false;
-
-        if (isDurabilityEnabled)
-        {
-            for (uint8 slot = 0; slot < HEIRLOOM_EQUIPMENT_SLOTS_COUNT; ++slot)
-            {
-                Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-                if (item && IsHeirloomItem(item->GetProto()))
-                {
-                    EnsureHeirloomDurability(player, item, slot);
-                }
-            }
-        }
-    }
 }
 
-void HeirloomMgr::RecalculatePlayerHeirlooms(Player* player, bool force)
+void HeirloomMgr::AdaptAllPlayerHeirlooms(Player* player, bool refreshTooltips)
 {
-    if (!player)
+    if (!sHeirloomConfig.IsEnabled())
         return;
 
-    std::lock_guard<std::recursive_mutex> lock(m_mutex);
-    auto& cache = m_playerCaches[player->GetObjectGuid()];
-
-    bool isModuleEnabled = sHeirloomConfig.IsEnabled();
-    bool isScalingEnabled = sHeirloomConfig.IsScalingEnabled();
-    bool isDurabilityEnabled = sHeirloomConfig.IsDurabilityExemptEnabled();
-    uint32 currentConfigGen = sHeirloomConfig.GetConfigGeneration();
-
-    // Master disable purges everything and halts
-    if (!isModuleEnabled)
-    {
-        RemoveAllDeltas(player, cache);
+    bool scaling = sHeirloomConfig.IsScalingEnabled();
+    if (!scaling && !refreshTooltips)
         return;
-    }
 
-    // If scaling specifically is disabled, remove existing deltas
-    if (!isScalingEnabled)
+    uint8 level = GetScaledLevel(player);
+    WorldSession* session = player->GetSession();
+    bool sendTooltips = session && !session->IsHeadless();
+    TradeData* trade = player->GetTradeData();
+    Item* enchantTarget = trade ? trade->GetItem(TRADE_SLOT_NONTRADED) : nullptr;
+    VisitOwnedItems(player, [&](uint8 bag, uint8 slot, Item* item)
     {
-        if (cache.scalingActiveWhenApplied)
+        uint32 entry = item->GetEntry();
+        uint32 family = GetFamily(entry);
+        if (!family)
+            return false;
+
+        // Scale within the appearance family used by the item instance.
+        uint32 target = family + level;
+        bool equipped = bag == INVENTORY_SLOT_BAG_0 && slot < EQUIPMENT_SLOT_END;
+        ItemPrototype const* next = scaling && entry != target ? sObjectMgr.GetItemPrototype(target) : nullptr;
+        if (!next || item->IsInTrade() || item == enchantTarget || (equipped && !player->IsAlive()))
         {
-            RemoveAllDeltas(player, cache);
-            cache.scalingActiveWhenApplied = false;
+            if (refreshTooltips && sendTooltips)
+                sWorld.SendUpdateSingleItem(entry, session);
+            return false;
         }
 
-        // Still run durability audit if enabled
-        if (isDurabilityEnabled)
-        {
-            for (uint8 slot = 0; slot < HEIRLOOM_EQUIPMENT_SLOTS_COUNT; ++slot)
-            {
-                Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-                if (item && IsHeirloomItem(item->GetProto()))
-                {
-                    EnsureHeirloomDurability(player, item, slot);
-                }
-            }
-        }
-        return;
-    }
+        if (sendTooltips)
+            sWorld.SendUpdateSingleItem(target, session);
+        if (equipped)
+            player->RemoveItem(bag, slot, false);
 
-    uint8 effectiveLvl = HeirloomFormula::GetEffectiveLevel(player->GetLevel(), sHeirloomConfig.GetMaxScalingLevel());
-
-    for (uint8 slot = 0; slot < HEIRLOOM_EQUIPMENT_SLOTS_COUNT; ++slot)
-    {
-        Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-        ItemPrototype const* proto = item ? item->GetProto() : nullptr;
-        uint64 currentGuid = item ? item->GetObjectGuid().GetRawValue() : 0;
-        bool isHeirloom = IsHeirloomItem(proto);
-
-        // REVIEW POINT 3: Maintain durability first to restore native item mods and avoid delay
-        if (item && isHeirloom && isDurabilityEnabled)
-        {
-            EnsureHeirloomDurability(player, item, slot);
-        }
-
-        bool isBroken = item ? item->IsBroken() : false;
-
-        if (cache.slots[slot].active)
-        {
-            if (force || !isHeirloom || isBroken || currentGuid != cache.slots[slot].itemGuid ||
-                effectiveLvl != cache.lastKnownLevel || cache.appliedConfigGen != currentConfigGen)
-            {
-                ApplySlotDelta(player, cache.slots[slot], slot, false);
-                cache.slots[slot].Reset();
-            }
-        }
-
-        if (isHeirloom && !isBroken && proto)
-        {
-            if (!cache.slots[slot].active)
-            {
-                HeirloomSlotDelta delta;
-                uint8 baseLvl = HeirloomFormula::GetBaseItemLevel(proto);
-                double ratio = HeirloomFormula::CalculateScalingRatio(baseLvl, effectiveLvl);
-                float mult = sHeirloomConfig.GetStatMultiplier();
-
-                for (uint8 i = 0; i < MAX_ITEM_PROTO_STATS; ++i)
-                {
-                    int32 baseStatVal = proto->ItemStat[i].ItemStatValue;
-                    uint32 statType = proto->ItemStat[i].ItemStatType;
-                    if (baseStatVal != 0 && statType < MAX_ITEM_MOD)
-                    {
-                        // Protective module delta refusal: reject scaling deltas for pathological base values outside sanity bounds.
-                        // Note: Native base stat remains completely unmodified as authored in the database.
-                        if (baseStatVal < HEIRLOOM_MIN_VALID_NATIVE_STAT || baseStatVal > HEIRLOOM_MAX_VALID_NATIVE_STAT)
-                        {
-                            if (sHeirloomConfig.IsDebugEnabled())
-                            {
-                                sLog.outDetail("[mod-twow-heirloom] Item %u has native stat %u (val %d) outside protective bounds [%d, %d]; refusing scaling delta (native stat remains unmodified)",
-                                    proto->ItemId, statType, baseStatVal, HEIRLOOM_MIN_VALID_NATIVE_STAT, HEIRLOOM_MAX_VALID_NATIVE_STAT);
-                            }
-                            continue;
-                        }
-
-                        int32 scaledVal = HeirloomFormula::ScaleStat(baseStatVal, ratio, mult);
-                        int64 diff = static_cast<int64>(scaledVal) - static_cast<int64>(baseStatVal);
-                        delta.statDeltas[i] = static_cast<int32>(diff);
-                        delta.statTypes[i] = statType;
-                    }
-                }
-
-                if (proto->Armor > 0)
-                {
-                    if (proto->Armor <= HEIRLOOM_MAX_VALID_NATIVE_ARMOR)
-                    {
-                        uint32 scaledArmor = HeirloomFormula::ScaleArmor(proto->Armor, ratio, mult);
-                        int64 armorDiff = static_cast<int64>(scaledArmor) - static_cast<int64>(proto->Armor);
-                        delta.armorDelta = static_cast<int32>(armorDiff);
-                    }
-                    else if (sHeirloomConfig.IsDebugEnabled())
-                    {
-                        sLog.outDetail("[mod-twow-heirloom] Item %u has native armor %u outside protective bounds [0, %u]; refusing armor scaling delta (native armor remains unmodified)",
-                            proto->ItemId, proto->Armor, HEIRLOOM_MAX_VALID_NATIVE_ARMOR);
-                    }
-                }
-
-                if (proto->Block > 0)
-                {
-                    if (proto->Block <= HEIRLOOM_MAX_VALID_NATIVE_BLOCK)
-                    {
-                        uint32 scaledBlock = HeirloomFormula::ScaleBlock(proto->Block, ratio, mult);
-                        int64 blockDiff = static_cast<int64>(scaledBlock) - static_cast<int64>(proto->Block);
-                        delta.blockDelta = static_cast<int32>(blockDiff);
-                    }
-                    else if (sHeirloomConfig.IsDebugEnabled())
-                    {
-                        sLog.outDetail("[mod-twow-heirloom] Item %u has native block %u outside protective bounds [0, %u]; refusing block scaling delta (native block remains unmodified)",
-                            proto->ItemId, proto->Block, HEIRLOOM_MAX_VALID_NATIVE_BLOCK);
-                    }
-                }
-
-                // Weapon damage scaling
-                if (proto->Class == ITEM_CLASS_WEAPON && proto->Damage[0].DamageMax > 0.0f)
-                {
-                    float avg0 = (proto->Damage[0].DamageMin + proto->Damage[0].DamageMax) * 0.5f;
-                    float avg1 = avg0 * static_cast<float>(ratio) * mult;
-                    int32 dmgDiff = static_cast<int32>(std::round(avg1 - avg0));
-                    if (dmgDiff > 0)
-                    {
-                        delta.weaponDamageDelta = dmgDiff;
-                        if (slot == EQUIPMENT_SLOT_MAINHAND)
-                            delta.weaponAttackType = BASE_ATTACK;
-                        else if (slot == EQUIPMENT_SLOT_OFFHAND)
-                            delta.weaponAttackType = OFF_ATTACK;
-                        else if (slot == EQUIPMENT_SLOT_RANGED)
-                            delta.weaponAttackType = RANGED_ATTACK;
-                    }
-                }
-
-                delta.itemEntry = proto->ItemId;
-                delta.itemGuid = currentGuid;
-                delta.active = true;
-                delta.isBroken = isBroken;
-
-                ApplySlotDelta(player, delta, slot, true);
-                cache.slots[slot] = delta;
-
-                if (item && player->GetSession())
-                {
-                    item->SendCreateUpdateToPlayer(player);
-                }
-            }
-        }
-
-        cache.slots[slot].isBroken = isBroken;
-        cache.equippedGuids[slot] = currentGuid;
-    }
-
-    // Push create update for any heirlooms stored in backpack and bags without relog
-    if (player->GetSession())
-    {
-        auto refreshBagItem = [&](Item* bagItem)
-        {
-            if (bagItem && IsHeirloomItem(bagItem->GetProto()))
-            {
-                bagItem->SendCreateUpdateToPlayer(player);
-            }
-        };
-
-        for (int i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; ++i)
-            refreshBagItem(player->GetItemByPos(INVENTORY_SLOT_BAG_0, i));
-
-        for (int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
-        {
-            if (Bag* pBag = (Bag*)player->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
-            {
-                for (uint32 j = 0; j < pBag->GetBagSize(); ++j)
-                    refreshBagItem(player->GetItemByPos(i, j));
-            }
-        }
-    }
-
-    cache.lastKnownLevel = effectiveLvl;
-    cache.appliedConfigGen = currentConfigGen;
-    cache.moduleActiveWhenApplied = true;
-    cache.scalingActiveWhenApplied = true;
+        item->ChangeEntry(next);
+        item->ApplyModFlag(ITEM_FIELD_FLAGS, ITEM_DYNFLAG_BOA, true);
+        item->SetUInt32Value(ITEM_FIELD_MAXDURABILITY, next->MaxDurability);
+        item->SetUInt32Value(ITEM_FIELD_DURABILITY,
+                             std::min(item->GetUInt32Value(ITEM_FIELD_DURABILITY), next->MaxDurability));
+        if (equipped)
+            player->EquipItem((uint16(bag) << 8) | slot, item, true);
+        else if (sendTooltips)
+            item->SendCreateUpdateToPlayer(player);
+        return false;
+    });
 }
 
 void HeirloomMgr::EnsureHeirloomDurability(Player* player, Item* item, uint8 slot)
@@ -606,10 +234,6 @@ float HeirloomMgr::CalculatePlayerBonusXPPercent(Player* player) const
 
     totalPercent += checkSlot(EQUIPMENT_SLOT_SHOULDERS, sHeirloomConfig.GetShoulderBonusXPPercent());
     totalPercent += checkSlot(EQUIPMENT_SLOT_CHEST, sHeirloomConfig.GetChestBonusXPPercent());
-    totalPercent += checkSlot(EQUIPMENT_SLOT_TRINKET1, sHeirloomConfig.GetTrinketBonusXPPercent());
-    totalPercent += checkSlot(EQUIPMENT_SLOT_TRINKET2, sHeirloomConfig.GetTrinketBonusXPPercent());
-    totalPercent += checkSlot(EQUIPMENT_SLOT_FINGER1, sHeirloomConfig.GetRingBonusXPPercent());
-    totalPercent += checkSlot(EQUIPMENT_SLOT_FINGER2, sHeirloomConfig.GetRingBonusXPPercent());
 
     totalPercent *= sHeirloomConfig.GetBonusXPRate();
     if (!std::isfinite(totalPercent) || totalPercent < 0.0f)
@@ -643,252 +267,9 @@ void HeirloomMgr::HandlePlayerGiveXP(Player* player, uint32& amount, Unit* /*vic
     {
         amount += safeBonusXP;
 
-        if (sHeirloomConfig.IsAnnounceEnabled())
+        if (sHeirloomConfig.IsAnnounceEnabled() && player->GetSession() && !player->GetSession()->IsHeadless())
         {
             ChatHandler(player->GetSession()).PSendSysMessage("Heirloom gear granted +%u bonus experience (%.1f%%)!", safeBonusXP, bonusPercent);
-        }
-    }
-}
-
-void HeirloomMgr::ApplySlotDelta(Player* player, HeirloomSlotDelta const& delta, uint8 slot, bool apply)
-{
-    if (!player || !delta.active)
-        return;
-
-    if (sHeirloomConfig.IsDebugEnabled())
-    {
-        sLog.outString("[mod-twow-heirloom] %s scaling deltas for item %u in slot %u on player %s (Level %u: Armor=%+d, WepDmg=%+d)",
-            apply ? "Applied" : "Removed", delta.itemEntry, slot, player->GetName(),
-            player->GetLevel(), delta.armorDelta, delta.weaponDamageDelta);
-    }
-
-    // FINDING-07: Pass exact delta value and pass 'apply' boolean directly.
-    // Core ApplyStatBuffMod (Player.h:1887) expects original val with apply=false to decrement the correct bucket.
-    for (uint8 i = 0; i < MAX_ITEM_PROTO_STATS; ++i)
-    {
-        int32 val = delta.statDeltas[i];
-        if (val == 0)
-            continue;
-
-        float fval = static_cast<float>(val);
-
-        switch (delta.statTypes[i])
-        {
-            case ITEM_MOD_MANA:
-                player->HandleStatModifier(UNIT_MOD_MANA, BASE_VALUE, fval, apply);
-                break;
-            case ITEM_MOD_HEALTH:
-                player->HandleStatModifier(UNIT_MOD_HEALTH, BASE_VALUE, fval, apply);
-                break;
-            case ITEM_MOD_AGILITY:
-                player->HandleStatModifier(UNIT_MOD_STAT_AGILITY, BASE_VALUE, fval, apply);
-                player->ApplyStatBuffMod(STAT_AGILITY, fval, apply);
-                player->UpdateStats(STAT_AGILITY);
-                break;
-            case ITEM_MOD_STRENGTH:
-                player->HandleStatModifier(UNIT_MOD_STAT_STRENGTH, BASE_VALUE, fval, apply);
-                player->ApplyStatBuffMod(STAT_STRENGTH, fval, apply);
-                player->UpdateStats(STAT_STRENGTH);
-                break;
-            case ITEM_MOD_INTELLECT:
-                player->HandleStatModifier(UNIT_MOD_STAT_INTELLECT, BASE_VALUE, fval, apply);
-                player->ApplyStatBuffMod(STAT_INTELLECT, fval, apply);
-                player->UpdateStats(STAT_INTELLECT);
-                break;
-            case ITEM_MOD_SPIRIT:
-                player->HandleStatModifier(UNIT_MOD_STAT_SPIRIT, BASE_VALUE, fval, apply);
-                player->ApplyStatBuffMod(STAT_SPIRIT, fval, apply);
-                player->UpdateStats(STAT_SPIRIT);
-                break;
-            case ITEM_MOD_STAMINA:
-                player->HandleStatModifier(UNIT_MOD_STAT_STAMINA, BASE_VALUE, fval, apply);
-                player->ApplyStatBuffMod(STAT_STAMINA, fval, apply);
-                player->UpdateStats(STAT_STAMINA);
-                break;
-            default:
-                break;
-        }
-    }
-
-    // Armor
-    if (delta.armorDelta != 0)
-    {
-        player->HandleStatModifier(UNIT_MOD_ARMOR, BASE_VALUE, static_cast<float>(delta.armorDelta), apply);
-        player->UpdateArmor();
-    }
-
-    // Block
-    if (delta.blockDelta != 0)
-    {
-        player->HandleBaseModValue(SHIELD_BLOCK_VALUE, FLAT_MOD, static_cast<float>(delta.blockDelta), apply);
-    }
-
-    // Weapon Damage
-    if (delta.weaponDamageDelta != 0)
-    {
-        UnitMods uMod = UNIT_MOD_DAMAGE_MAINHAND;
-        if (delta.weaponAttackType == OFF_ATTACK)
-            uMod = UNIT_MOD_DAMAGE_OFFHAND;
-        else if (delta.weaponAttackType == RANGED_ATTACK)
-            uMod = UNIT_MOD_DAMAGE_RANGED;
-
-        player->HandleStatModifier(uMod, TOTAL_VALUE, static_cast<float>(delta.weaponDamageDelta), apply);
-        player->UpdateDamagePhysical(static_cast<WeaponAttackType>(delta.weaponAttackType));
-    }
-
-    // Refresh derived player stats for accurate character sheet display
-    player->UpdateAttackPowerAndDamage();
-    player->UpdateAttackPowerAndDamage(true);
-    player->UpdateArmor();
-    player->UpdateMaxHealth();
-    if (player->GetPowerType() == POWER_MANA)
-        player->UpdateMaxPower(POWER_MANA);
-    player->UpdateCritPercentage(BASE_ATTACK);
-    player->UpdateCritPercentage(OFF_ATTACK);
-    player->UpdateCritPercentage(RANGED_ATTACK);
-}
-
-void HeirloomMgr::RemoveAllDeltas(Player* player, HeirloomPlayerCache& cache)
-{
-    if (!player)
-        return;
-
-    for (uint8 slot = 0; slot < HEIRLOOM_EQUIPMENT_SLOTS_COUNT; ++slot)
-    {
-        if (cache.slots[slot].active)
-        {
-            ApplySlotDelta(player, cache.slots[slot], slot, false);
-            cache.slots[slot].Reset();
-        }
-    }
-    cache.Reset();
-}
-
-uint32 HeirloomMgr::GetScaledHeirloomEntry(uint32 currentEntry, uint8 targetLevel)
-{
-    static const std::unordered_map<uint32, uint32> s_legacyToBase = {
-#include "HeirloomItemMapping.inc"
-    };
-
-    uint8 level = std::clamp<uint8>(targetLevel, 1, 60);
-
-    // 1. Direct range: 900000 - 916260
-    if (currentEntry >= 900000 && currentEntry <= 916260)
-    {
-        uint32 baseId = (currentEntry / 100) * 100;
-        return baseId + level;
-    }
-
-    // 2. Legacy entries (991111 - 992173) mapped to baseId
-    auto it = s_legacyToBase.find(currentEntry);
-    if (it != s_legacyToBase.end())
-    {
-        return it->second + level;
-    }
-
-    return 0;
-}
-
-void HeirloomMgr::AdaptAllPlayerHeirlooms(Player* player)
-{
-    if (!player || !sHeirloomConfig.IsEnabled() || !sHeirloomConfig.IsScalingEnabled())
-        return;
-
-    uint8 pLevel = player->GetLevel();
-
-    // 1. Equipped items (Slots 0 to 18)
-    for (uint8 slot = 0; slot < HEIRLOOM_EQUIPMENT_SLOTS_COUNT; ++slot)
-    {
-        Item* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-        if (!item)
-            continue;
-
-        uint32 currentEntry = item->GetEntry();
-        uint32 targetEntry = GetScaledHeirloomEntry(currentEntry, pLevel);
-
-        if (targetEntry == 0 || targetEntry == currentEntry)
-            continue;
-
-        ItemPrototype const* newProto = sObjectMgr.GetItemPrototype(targetEntry);
-        if (!newProto)
-            continue;
-
-        if (sHeirloomConfig.IsDebugEnabled())
-        {
-            sLog.outString("[mod-twow-heirloom] Adapting equipped heirloom %u -> %u for %s (slot %u, level %u)",
-                currentEntry, targetEntry, player->GetName(), slot, pLevel);
-        }
-
-        // Reset delta cache for this slot
-        {
-            std::lock_guard<std::recursive_mutex> lock(m_mutex);
-            auto it = m_playerCaches.find(player->GetObjectGuid());
-            if (it != m_playerCaches.end() && it->second.slots[slot].active)
-            {
-                ApplySlotDelta(player, it->second.slots[slot], slot, false);
-                it->second.slots[slot].Reset();
-            }
-        }
-
-        uint16 pos = (static_cast<uint16>(INVENTORY_SLOT_BAG_0) << 8) | static_cast<uint16>(slot);
-        player->RemoveItem(INVENTORY_SLOT_BAG_0, slot, true);
-        item->ChangeEntry(newProto);
-        player->EquipItem(pos, item, true);
-
-        if (player->GetSession())
-        {
-            sWorld.SendUpdateSingleItem(targetEntry, player->GetSession());
-            item->SendCreateUpdateToPlayer(player);
-            player->SendNewItem(item, item->GetCount(), false, false, false, false);
-        }
-
-        player->UpdateArmor();
-        player->UpdateAllStats();
-    }
-
-    // 2. Bags & Backpack
-    auto adaptBagItem = [&](uint8 bag, uint8 slot, Item* item)
-    {
-        if (!item)
-            return;
-
-        uint32 currentEntry = item->GetEntry();
-        uint32 targetEntry = GetScaledHeirloomEntry(currentEntry, pLevel);
-
-        if (targetEntry == 0 || targetEntry == currentEntry)
-            return;
-
-        ItemPrototype const* newProto = sObjectMgr.GetItemPrototype(targetEntry);
-        if (!newProto)
-            return;
-
-        if (sHeirloomConfig.IsDebugEnabled())
-        {
-            sLog.outString("[mod-twow-heirloom] Adapting bagged heirloom %u -> %u for %s (bag %u, slot %u, level %u)",
-                currentEntry, targetEntry, player->GetName(), bag, slot, pLevel);
-        }
-
-        item->ChangeEntry(newProto);
-
-        if (player->GetSession())
-        {
-            sWorld.SendUpdateSingleItem(targetEntry, player->GetSession());
-            item->SendCreateUpdateToPlayer(player);
-            player->SendNewItem(item, item->GetCount(), false, false, false, false);
-        }
-    };
-
-    // Backpack
-    for (int i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; ++i)
-        adaptBagItem(INVENTORY_SLOT_BAG_0, i, player->GetItemByPos(INVENTORY_SLOT_BAG_0, i));
-
-    // Bag containers
-    for (int i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
-    {
-        if (Bag* pBag = (Bag*)player->GetItemByPos(INVENTORY_SLOT_BAG_0, i))
-        {
-            for (uint32 j = 0; j < pBag->GetBagSize(); ++j)
-                adaptBagItem(i, j, player->GetItemByPos(i, j));
         }
     }
 }

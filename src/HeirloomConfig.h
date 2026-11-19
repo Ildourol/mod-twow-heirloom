@@ -7,6 +7,7 @@
 #define _HEIRLOOM_CONFIG_H
 
 #include "HeirloomCommon.h"
+#include <atomic>
 #include <mutex>
 #include <string>
 #include <unordered_set>
@@ -19,23 +20,24 @@ public:
     void Load();
 
     [[nodiscard]] bool IsEnabled() const { return m_enabled; }
+    [[nodiscard]] bool IsCollectionEnabled() const { return m_collectionEnabled; }
+    [[nodiscard]] bool UsesPerCharacterUnlocks() const { return m_perCharacterUnlocks; }
+    [[nodiscard]] bool IsCollectionMailEnabled() const { return m_collectionMailEnabled; }
+    [[nodiscard]] HeirloomUnlockLimits GetUnlockLimits(HeirloomPool pool) const;
     [[nodiscard]] bool IsScalingEnabled() const { return m_scalingEnabled; }
     [[nodiscard]] uint8 GetMaxScalingLevel() const { return m_maxScalingLevel; }
-    [[nodiscard]] float GetStatMultiplier() const { return m_statMultiplier; }
 
     [[nodiscard]] bool IsBonusXPEnabled() const { return m_bonusXPEnabled; }
     [[nodiscard]] float GetBonusXPRate() const { return m_bonusXPRate; }
     [[nodiscard]] float GetShoulderBonusXPPercent() const { return m_shoulderXPPercent; }
     [[nodiscard]] float GetChestBonusXPPercent() const { return m_chestXPPercent; }
-    [[nodiscard]] float GetTrinketBonusXPPercent() const { return m_trinketXPPercent; }
-    [[nodiscard]] float GetRingBonusXPPercent() const { return m_ringXPPercent; }
 
     // Durability exemption toggle
     [[nodiscard]] bool IsDurabilityExemptEnabled() const { return m_durabilityExempt; }
 
     // Standalone Database Auto-Import
     [[nodiscard]] bool IsAutoImportEnabled() const { return m_autoImport; }
-    [[nodiscard]] std::string const& GetSqlPath() const { return m_sqlPath; }
+    [[nodiscard]] std::string GetSqlPath() const;
 
     // Logging & Diagnostics
     [[nodiscard]] bool IsAnnounceEnabled() const { return m_announceEnabled; }
@@ -44,33 +46,29 @@ public:
     // Item ID matching
     [[nodiscard]] bool IsHeirloomItemId(uint32 itemId) const;
 
-    // Config generation revision counter for reload detection (FINDING-05)
-    [[nodiscard]] uint32 GetConfigGeneration() const { return m_configGeneration; }
-
 private:
     HeirloomConfig() = default;
 
     mutable std::mutex m_mutex;
 
-    bool m_enabled{true};
-    bool m_scalingEnabled{true};
-    uint8 m_maxScalingLevel{HEIRLOOM_MAX_LEVEL_DEFAULT};
-    float m_statMultiplier{1.0f};
+    std::atomic<bool> m_enabled{true};
+    std::atomic<bool> m_collectionEnabled{true};
+    std::atomic<bool> m_perCharacterUnlocks{true};
+    std::atomic<bool> m_collectionMailEnabled{true};
+    std::array<HeirloomUnlockLimits, HEIRLOOM_POOLS.size()> m_unlocks{};
+    std::atomic<bool> m_scalingEnabled{true};
+    std::atomic<uint8> m_maxScalingLevel{HEIRLOOM_MAX_LEVEL_DEFAULT};
 
-    bool m_bonusXPEnabled{true};
-    float m_bonusXPRate{1.0f};
-    float m_shoulderXPPercent{10.0f};
-    float m_chestXPPercent{10.0f};
-    float m_trinketXPPercent{5.0f};
-    float m_ringXPPercent{5.0f};
+    std::atomic<bool> m_bonusXPEnabled{true};
+    std::atomic<float> m_bonusXPRate{1.0f};
+    std::atomic<float> m_shoulderXPPercent{10.0f};
+    std::atomic<float> m_chestXPPercent{10.0f};
 
-    bool m_durabilityExempt{true};
-    bool m_autoImport{true};
+    std::atomic<bool> m_durabilityExempt{true};
+    std::atomic<bool> m_autoImport{true};
     std::string m_sqlPath;
-    bool m_announceEnabled{false};
-    bool m_debugEnabled{true};
-
-    uint32 m_configGeneration{0};
+    std::atomic<bool> m_announceEnabled{false};
+    std::atomic<bool> m_debugEnabled{true};
 
     std::unordered_set<uint32> m_explicitHeirloomIds;
 };
