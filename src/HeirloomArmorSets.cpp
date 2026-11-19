@@ -48,7 +48,7 @@ namespace
     struct EquippedSet
     {
         uint32 pieces = 0;
-        bool usesNativeSet = false;
+        uint32 nativeSet = 0;
         uint8 level = HEIRLOOM_MIN_LEVEL;
     };
 
@@ -82,7 +82,8 @@ namespace
 
             EquippedSet& worn = equipped[set - std::begin(Sets)];
             ++worn.pieces;
-            worn.usesNativeSet |= item->GetProto()->ItemSet != 0;
+            if (ItemPrototype const* proto = item->GetProto(); proto && proto->ItemSet)
+                worn.nativeSet = proto->ItemSet;
             if (!scaling && entry > family && entry <= family + HEIRLOOM_MAX_LEVEL_DEFAULT)
                 worn.level = std::min(worn.level, static_cast<uint8>(entry - family));
         }
@@ -94,12 +95,24 @@ namespace
         return std::max<int32>(1, (amount * level + 30) / 60);
     }
 
-    EffectAmounts GetBonuses(ArmorSet const& set, EquippedSet const& equipped)
+    bool HasEarnedNativeBonus(Player const* player, uint32 setId)
+    {
+        if (!setId)
+            return false;
+
+        for (ItemSetEffect const* effect : player->m_ItemSetEff)
+            if (effect && effect->setid == setId)
+                return std::any_of(std::begin(effect->spells), std::end(effect->spells),
+                    [](SpellEntry const* spell) { return spell != nullptr; });
+        return false;
+    }
+
+    EffectAmounts GetBonuses(Player const* player, ArmorSet const& set, EquippedSet const& equipped)
     {
         EffectAmounts amounts{};
-        // The core applies the stock bonuses for any equipped native variant.
-        // With fixed-tier items, mixed versions must not also earn a custom aura.
-        if (equipped.usesNativeSet)
+        // A native-tier item can be worn before the core awards any stock bonus.
+        // Keep the scaled effects until the core has actually earned a set spell.
+        if (HasEarnedNativeBonus(player, equipped.nativeSet))
             return amounts;
 
         for (size_t i = 0; i < set.effects.size(); ++i)
@@ -162,13 +175,21 @@ bool HeirloomArmorSets::Initialize()
 
 HeirloomArmorSets::EquippedEntries HeirloomArmorSets::GetEquippedEntries(Player const* player)
 {
+    if (!Available)
+        return {};
+
     EquippedEntries entries{};
-    if (Available)
-        for (size_t i = 0; i < Slots.size(); ++i)
-            if (Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, Slots[i]))
-                if (HeirloomMgr::GetFamily(item->GetEntry()))
-                    entries[i] = item->GetEntry();
-    return entries;
+    bool hasHeirloom = false;
+    for (size_t i = 0; i < Slots.size(); ++i)
+    {
+        Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, Slots[i]);
+        if (!item)
+            continue;
+        entries[i] = item->GetEntry();
+        hasHeirloom |= HeirloomMgr::GetFamily(entries[i]) != 0;
+    }
+    // Ordinary pieces can also change the core's stock set count.
+    return hasHeirloom ? entries : EquippedEntries{};
 }
 
 void HeirloomArmorSets::Clear(Player* player)
@@ -194,7 +215,7 @@ void HeirloomArmorSets::Refresh(Player* player)
     for (size_t i = 0; i < equipped.size(); ++i)
     {
         ArmorSet const& set = Sets[i];
-        EffectAmounts amounts = GetBonuses(set, equipped[i]);
+        EffectAmounts amounts = GetBonuses(player, set, equipped[i]);
         UpdateSetAura(player, set.spell, amounts);
     }
 }

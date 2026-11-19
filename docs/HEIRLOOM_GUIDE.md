@@ -19,12 +19,12 @@ The first choices are earned at level **10**. By level **55**, the shipped progr
 Check an in-game mailbox after reaching a bracket. The armor curator sends **Armorer's Writs**, and the weaponmaster sends **Weaponmaster's Seals** in a separate letter. Collect each attachment before visiting its shop.
 
 1. Right-click the Heirloom Armorer to shop for armor. The weapons vendor offers arms, shields, and caster off-hands. Bring the matching voucher in your bags.
-2. Hover over a piece to see its stats and requirements. At the set's native tier, the tooltip displays the stock set bonuses. Right-click an item in the shop to unlock the family. A two-handed weapon costs two seals, and a one-handed weapon, ranged weapon, shield, or caster off-hand costs one. A family already unlocked is free to claim.
+2. Hover over a piece to see its stats and requirements. At the set's native tier, the stock tooltip shows the original set's bonus text. Right-click an item in the shop to unlock the family. A two-handed weapon costs two seals, and a one-handed weapon, ranged weapon, shield, or caster off-hand costs one. A family already unlocked is free to claim. Purchases keep the shop open and the stock client refreshes the displayed prices the next time the shop opens.
 3. Return when you reach the next bracket, or save choices for later. Unused choices carry forward and the curator uses the earliest earned bracket with room. Each character earns their own choices by default. Every new family they unlock becomes available across the account. A low-level alt can claim any shared family they can equip and keep their own choices for adding new pieces.
 
 The curators use your current weapon and armor proficiencies. Plate is visible at all levels and requires plate proficiency to buy or equip. If a character has an unlocked item in the bank, move it from the bank to use it again. If you've destroyed an unlocked item, you can claim a replacement.
 
-Pick a slot where you expect long gaps between upgrades. Guardian armor and the shield favor Stamina, with Defense reserved for select tank gear. Vindicator melee pieces favor physical attributes and some Attack Power. Bows, guns, crossbows, and thrown weapons favor Agility. Arcane gear favors Intellect and spell damage. Blessed caster gear favors Intellect and healing, including a one-handed mace and staff. Each piece follows a rare-item benchmark for its slot, armor material, or weapon type. Chest pieces carry more stats than smaller slots. A caster staff can carry a larger spell bonus than a wand or off-hand.
+Pick a slot where you expect long gaps between upgrades. Guardian heavy armor, shields, and one-handed tank weapons favor Stamina and Defense. Guardian leather and cloaks use Agility and armor. Vindicator armor and melee weapons favor physical attributes and Attack Power. Bows, guns, crossbows, and thrown weapons favor Agility and ranged Attack Power. Arcane gear favors Intellect and spell damage. Blessed gear favors healing, with mana regeneration on selected bracers. Each piece follows a rare-item benchmark for its slot, armor material, or weapon type. Chest pieces carry more stats than smaller slots. A caster staff can carry a larger spell bonus than a wand or off-hand.
 
 ## Rings and trinkets
 
@@ -43,7 +43,7 @@ Each role has two named rings and two distinct trinkets. You can mix them across
 
 The armorer lists plate, mail, leather, and cloth in that order. Within each material, Guardian comes first, then Vindicator or Arcane, then Blessed, where available.
 
-A full set consists of the helm, shoulders, chest, bracers, gloves, belt, leggings, and boots. Below the native tier, wearing **2, 4, or 8** matching pieces unlocks cumulative, scaled bonuses. Alternate Vindicator cloth appearances count toward Arcane Mystic's Vestments.
+A full set consists of the helm, shoulders, chest, bracers, gloves, belt, leggings, and boots. Wearing **2, 4, or 8** matching pieces unlocks cumulative, scaled bonuses until the core awards a stock bonus for that family. Alternate Vindicator cloth appearances count toward Arcane Mystic's Vestments.
 
 | Material | Bulwark | Renewal | Arms or Spellcraft |
 | --- | --- | --- | --- |
@@ -52,7 +52,7 @@ A full set consists of the helm, shoulders, chest, bracers, gloves, belt, leggin
 | Leather | Guardian adds Stamina, Agility, and dodge | Blessed adds Healing, Spirit, and spell crit | Vindicator adds Agility, Stamina, and physical crit |
 | Cloth | | Blessed adds Healing, Spirit, and spell crit | Arcane adds Spell Damage, Intellect, and spell crit |
 
-The low-tier flat bonuses scale with the heirloom tier. Their eight-piece **+1%** crit, dodge, or block effect starts at tier 40. The stock set takes over at the listed tier. The stock client supplies its original bonus text and values. Native pieces can count together with ordinary drops from the same set. With automatic scaling disabled, the native set counts only equipped pieces whose existing templates already carry the stock set ID. As soon as one piece in a family carries that ID, the custom bonus for that family yields to the stock set rules.
+The flat bonuses scale with the heirloom tier. Their eight-piece **+1%** crit, dodge, or block effect starts at tier 40. At the listed native tier, eligible pieces can count together with ordinary drops from the same stock set. With automatic scaling disabled, the core counts only pieces carrying the stock set ID. Once the core awards a stock bonus, that set uses stock bonuses. The stock client lists original item entries and can show gray set lines for scaled heirloom variants even when the server has awarded an effect.
 
 | Heirloom set | Stock set | Native tier |
 | --- | --- | ---: |

@@ -2,7 +2,7 @@
 
 ## Curators and account state
 
-The curator script sends the Tortoise client's built-in merchant trigger. Build 1.18.1.7979 hides the dialogue and opens its token shop directly. The module serves `TW_Merchant` requests for its own nearby, faction-appropriate curators and calculates each buyer's capped offers and prices independently. The native `npc_vendor` stock stays empty. Purchase requests revalidate the family, proficiency, current allowance, and voucher in the bags before delivery. The module records a new family before consuming its voucher, so a delivery retry can use a free claim.
+The curator script sends the Tortoise client's built-in merchant trigger. Build 1.18.1.7979 hides the dialogue and opens its token shop directly. The module serves `TW_Merchant` requests for its own nearby, faction-appropriate curators and calculates each buyer's capped offers and prices independently. The native `npc_vendor` stock stays empty. Purchase requests revalidate the family, proficiency, current allowance, and voucher in the bags before delivery. The module records a new family before consuming its voucher, so a delivery retry can use a free claim. Successful purchases keep the merchant panel open. The stock client refreshes offer prices when the panel opens, and the server validates prices and eligibility on each click.
 
 The character database starts with an empty mod_heirloom_account_collection table. Each family is unique per account. Spending is tracked by earner, equipment pool, and bracket in per-character mode, and by account in shared mode. The unique shared slot prevents concurrent grants from using the same slot. The curator picks the earliest earned bracket with room and validates the cumulative allowance. Bag space and existing equipment, inventory, and bank copies are checked before an unlock or claim. The collection row is written before delivery so an interrupted delivery can be retried as a free claim.
 
@@ -30,7 +30,7 @@ The bundled World SQL contains all 60 tiers for 162 families. Combat values use 
 
 Each armor set uses one module-owned passive aura with up to three native effects. The player hook counts the eight matching equipment slots and recomputes the cumulative amounts when a 2-, 4-, or 8-piece threshold is reached. Flat effects scale by template tier. Percentage effects use whole percentage points and activate at the tier declared in the set data. It refreshes the aura through the core and removes it as soon as the worn pieces cease to qualify on the next player update. Set membership uses the item family, so changing level templates preserves it. Passive auras are recomputed on login and are not saved to characters.
 
-`src/HeirloomArmorSets.inc` supplies the curator catalog, aura IDs, and effect progression. The World SQL includes the passive spells for low tiers and the stock armor models and set IDs for higher tiers. The core applies stock set effects and the client reads the matching ItemSet.dbc records. The module yields to the core for an equipped family with a native set ID.
+`src/HeirloomArmorSets.inc` supplies the curator catalog, aura IDs, and effect progression. The World SQL includes the passive spells for low tiers and the stock armor models and set IDs for higher tiers. The core applies stock set effects and the client reads the matching ItemSet.dbc records. The module keeps its scaled bonus until the core records an earned stock spell for that equipped family. This covers mixed template tiers and stock sets whose first bonus needs three pieces.
 
 ## Installation
 

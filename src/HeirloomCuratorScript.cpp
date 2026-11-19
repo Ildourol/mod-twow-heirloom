@@ -357,7 +357,7 @@ namespace
         SendCurrency(player, "show");
     }
 
-    void Buy(Player* player, Creature* creature, bool weapons, uint32 family)
+    void Buy(Player* player, bool weapons, uint32 family)
     {
         HeirloomPool pool = weapons ? HeirloomPool::Weapons : HeirloomPool::Armor;
         if (!weapons &&
@@ -461,23 +461,9 @@ namespace
             player->DestroyItemCount(voucher, units, true);
         player->SaveInventoryAndGoldToDB();
 
-        if (!unlocked)
-        {
-            // The stock client replaces the offer list only when its trigger
-            // fires. Reopen it so this family immediately shows as a free claim.
-            ObjectGuid curator = creature->GetObjectGuid();
-            player->PlayerTalkClass->CloseGossip();
-            player->m_Events.AddLambdaEventAtOffset([player, curator]()
-            {
-                if (!player->IsInWorld() || !player->GetSession() ||
-                    player->GetSession()->GetCurrentGossipGUID() != curator)
-                    return;
-                if (Creature* npc = player->GetNPCIfCanInteractWith(curator, UNIT_NPC_FLAG_GOSSIP))
-                    OpenMerchant(player, npc);
-            }, 150);
-        }
-        else
-            SendCurrency(player, "update");
+        // The stock panel rebuilds offers on open. Keep the current page open;
+        // purchases always use the latest collection and voucher state on the server.
+        SendCurrency(player, "update");
     }
 
     class HeirloomCuratorScript : public CreatureScript
@@ -545,7 +531,7 @@ namespace
                 SendStock(player, weapons);
             }
             else if (std::strcmp(command, "buy") == 0 && message.HasMember("idx") && message["idx"].IsUint())
-                Buy(player, creature, weapons, message["idx"].GetUint());
+                Buy(player, weapons, message["idx"].GetUint());
             else if (std::strcmp(command, "update") == 0)
                 SendCurrency(player, "update");
 

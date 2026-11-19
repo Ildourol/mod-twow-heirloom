@@ -4,11 +4,14 @@ The World install SQL contains all 162 heirloom families at tiers 1 through 60. 
 
 | Heirloom | Tier | Shipped values |
 | --- | ---: | --- |
-| Guardian Field Plate Armor | 60 | 687 armor, 39 primary stat points, +4 Defense |
-| Blessed Field Plate Armor | 60 | 687 armor, 39 primary stat points, +18 healing |
-| Vindicator Field Plate Armor | 60 | 687 armor, 39 primary stat points, +15 Attack Power |
+| Guardian Field Plate Armor | 60 | 687 armor, 34 primary stat points, +7 Defense |
+| Blessed Field Plate Armor | 60 | 687 armor, 29 primary stat points, +42 healing |
+| Vindicator Field Plate Armor | 60 | 687 armor, 34 primary stat points, +26 Attack Power |
 | Guardian Banded Armor | 60 | 377 armor, 44 primary stat points, +7 Defense |
-| Arcane Mystic's Robe | 60 | 90 armor, 37 primary stat points, +22 spell damage and healing |
+| Guardian Blackened Defias Armor | 60 | 176 base armor, 40 primary stat points, +30 armor on equip |
+| Arcane Mystic's Robe | 60 | 90 armor, 34 primary stat points, +26 spell damage and healing |
+| Arcane Illusionary Rod | 60 | 29 primary stat points, +31 spell damage and healing |
+| Vindicator Gryphonwing Long Bow | 60 | 10 primary stat points, +7 ranged Attack Power |
 | Cruel Barb | 19 | 15.5 DPS |
 | Aegis of the Scarlet Commander | 39 | 1,548 armor, 23 block |
 | Bonecreeper Stylus | 60 | 64.7 DPS |
@@ -20,6 +23,12 @@ Breastplate of Valor, a level-58 rare, has 657 armor and 49 primary stat points 
 - The audit compared gear at its required level or quest reward level by slot, armor material, weapon type, and quality. It excluded honor gear, randomly rolled items, item levels over 66, and items more than 12 item levels above the comparison level.
 - Nearby matching rares supplied the median. Sparse groups used comparable uncommon items with a rarity adjustment, related rare groups, or an estimate from the nearest items.
 - Armor, shield block, and weapon DPS follow separate curves. The stat budget counts primary stats and recognizable fixed passive effects. Trinket budgets use passive effects.
+
+## Role-specific equip effects
+
+Guardian heavy armor, shields, and one-handed tank weapons spend part of their budget on Defense. Guardian leather and cloaks use Stamina, Agility, and armor. Vindicator armor and melee weapons use Attack Power. Physical ranged weapons use Agility and ranged Attack Power. Arcane cloth and caster arms use spell damage and healing, while Blessed gear uses healing or mana regeneration on selected bracers.
+
+Core and client data confirm the equip-spell ranks. Early tiers use primary stats until they can support a fixed equip effect. Primary stats and equip effect ranks grow monotonically by family. The audit redistributed each template's existing budget, allowing for rounding and gaps between stock spell ranks. Base armor, block, weapon damage, XP, and armor set memberships use the same values as before.
 
 ## Rare ring audit
 

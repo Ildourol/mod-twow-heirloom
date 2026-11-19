@@ -29,7 +29,7 @@ Characters receive **one Curator's Token** at each of levels **10, 20, 30, and 4
 
 ## Armor set bonuses
 
-The armor curator offers eleven eight-piece sets across plate, mail, leather, and cloth. Before the native tier, each set gives cumulative bonuses for **2, 4, or 8** matching pieces. Guardian sets focus on survival, Blessed sets on healing, Vindicator sets on physical attacks, and Arcane cloth on spell damage. Each set uses the appearance of an existing Tortoise set. At heirloom tiers **47–55**, depending on the set, the pieces gain the matching stock set ID and use its original bonuses and native tooltip. Earlier tiers keep the module's scaled 2-, 4-, and 8-piece bonuses. Item stats continue to scale at every tier. See the player guide for the matching sets and their unlock tiers.
+The armor curator offers eleven eight-piece sets across plate, mail, leather, and cloth. Before the native tier, each set gives cumulative bonuses for **2, 4, or 8** matching pieces. Guardian sets focus on survival, Blessed sets on healing, Vindicator sets on physical attacks, and Arcane cloth on spell damage. Each set uses the appearance of an existing Tortoise set. At heirloom tiers **47–55**, depending on the set, pieces can earn the corresponding stock set bonuses. The scaled 2-, 4-, and 8-piece bonuses still apply while no stock bonus has been earned for that family. Item stats continue to scale at every tier. See the player guide for the matching sets and their unlock tiers.
 
 Spending all eight default armor choices on the same set completes it by level 55. Plate appears in the shop at all levels. Redeeming and equipping it require plate proficiency.
 
