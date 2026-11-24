@@ -21,7 +21,7 @@ namespace
 {
     bool IsCatalogEntry(uint32 entry)
     {
-        return entry >= 900001 && entry <= 916160 && entry % 100 >= 1 && entry % 100 <= 60;
+        return entry >= 900001 && entry <= 916260 && entry % 100 >= 1 && entry % 100 <= 60;
     }
 
     template<class Visitor>

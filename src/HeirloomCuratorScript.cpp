@@ -42,8 +42,10 @@ namespace
     constexpr size_t ItemsPerPage = 10;
 
     constexpr uint32 WeaponFamilies[] = {
-        911300, 911600, 911900, 912200, 912400, 912500, 913100, 913400,
-        914000, 914300, 914600, 914700, 915300, 915400, 915600, 915900
+        911100, 911300, 911600, 911700, 911900, 912000, 912200, 912300,
+        912400, 912500, 912600, 912700, 912800, 913100, 913400, 913700,
+        914000, 914300, 914600, 914700, 915200, 915300, 915400, 915600,
+        915700, 915900, 916000, 916100, 916200
     };
     enum class ArmorMaterial { Plate, Mail, Leather, Cloth };
     enum class ArmorRole { Bulwark, Arms, Spellcraft = Arms, Renewal };
