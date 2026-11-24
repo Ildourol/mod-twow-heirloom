@@ -157,7 +157,7 @@ namespace
         QueryResult* result = WorldDatabase.Query(
             "SELECT 1 FROM DUAL WHERE "
             "(SELECT COUNT(*) FROM item_template WHERE entry BETWEEN 900001 AND 916160 "
-            "AND MOD(entry, 100) BETWEEN 1 AND 60 AND bonding = 6) = 9720 "
+            "AND MOD(entry, 100) BETWEEN 1 AND 60 AND bonding = 6) IN (9540, 9720) "
             "AND (SELECT COUNT(*) FROM item_template WHERE entry IN (916301, 916302, 916303) AND bonding = 1) = 3 "
             "AND (SELECT COUNT(*) FROM creature_template WHERE entry IN (2000201, 2000204, 2000221, 2000224) "
             "AND script_name = 'npc_heirloom_vendor') = 4 "
