@@ -66,6 +66,8 @@ namespace
 #undef HEIRLOOM_ACCESSORY
     };
 
+    constexpr uint32 CloakFamilies[] = { 909600, 909700, 909800 };
+
     template<class Visitor>
     void VisitStock(HeirloomPool pool, Visitor visit)
     {
@@ -87,6 +89,9 @@ namespace
                 if (first)
                     for (uint32 piece = 0; piece < 8; ++piece)
                         visit(first + piece * 100);
+
+        for (uint32 cloak : CloakFamilies)
+            visit(cloak);
     }
 
     bool IsWeaponShop(uint32 entry)
@@ -217,10 +222,14 @@ namespace
 
     bool CanShop(Player* player)
     {
-        return player && player->GetSession() && !player->GetSession()->IsHeadless() &&
-               player->GetSession()->GetAccountId() && sHeirloomConfig.IsEnabled() &&
-               sHeirloomConfig.IsCollectionEnabled() && IsHeirloomCollectionReady() &&
-               sWorld.getConfig(CONFIG_BOOL_ADDON_CHANNEL);
+        if (!player || !player->GetSession())
+            return false;
+        bool isBot = sScriptMgr.IsBotManaged(player) || player->GetSession()->IsHeadless();
+        if (!isBot && !player->GetSession()->GetAccountId())
+            return false;
+        if (!sHeirloomConfig.IsEnabled() || !sHeirloomConfig.IsCollectionEnabled() || !IsHeirloomCollectionReady())
+            return false;
+        return isBot || sWorld.getConfig(CONFIG_BOOL_ADDON_CHANNEL);
     }
 
     void OpenMerchant(Player* player, Creature* creature)
@@ -287,9 +296,9 @@ namespace
 
         Allowance allowance = GetAllowance(player, collection, pool);
         uint32 voucher = HeirloomVoucher(pool);
-        bool requireVoucher = UsesVouchers();
+        bool requireVoucher = sHeirloomConfig.IsTokenRequirementEnabled(player);
         uint32 held = requireVoucher ? player->GetItemCount(voucher) : 0;
-        if (requireVoucher)
+        if (requireVoucher && player->GetSession() && !player->GetSession()->IsHeadless())
             sWorld.SendUpdateSingleItem(voucher, player->GetSession());
 
         VisitStock(pool, [&](uint32 family)
@@ -300,9 +309,9 @@ namespace
             bool unlocked = HasUnlocked(collection, family);
             bool trained = player->CanUseItem(item) == EQUIP_ERR_OK;
             uint32 units = UnlockCost(pool, *item);
-            bool affordable = allowance.remaining >= units && (!requireVoucher || held >= units);
-            offers.push_back({family, item->ItemId, !unlocked && requireVoucher ? voucher : 0, units,
-                trained, trained && (unlocked || affordable)});
+            bool affordable = !requireVoucher || (allowance.remaining >= units && held >= units);
+            offers.push_back({family, item->ItemId, requireVoucher ? voucher : 0, units,
+                trained, trained && affordable});
         });
         return true;
     }
@@ -359,6 +368,20 @@ namespace
         SendCurrency(player, "show");
     }
 
+    enum HeirloomBotGossip : uint32
+    {
+        GOSSIP_CAT_WEAPONS_1H = 10,
+        GOSSIP_CAT_WEAPONS_2H = 20,
+        GOSSIP_CAT_WEAPONS_RANGED = 30,
+        GOSSIP_CAT_ARMOR_PLATE = 40,
+        GOSSIP_CAT_ARMOR_MAIL = 50,
+        GOSSIP_CAT_ARMOR_LEATHER = 60,
+        GOSSIP_CAT_ARMOR_CLOTH = 70,
+        GOSSIP_CAT_ARMOR_CLOAKS = 80,
+        GOSSIP_CAT_ACCESSORIES = 90,
+        GOSSIP_BUY_FAMILY_BASE = 1000000
+    };
+
     void Buy(Player* player, bool weapons, uint32 family)
     {
         HeirloomPool pool = weapons ? HeirloomPool::Weapons : HeirloomPool::Armor;
@@ -377,7 +400,8 @@ namespace
             return;
         if (player->CanUseItem(offer) != EQUIP_ERR_OK)
         {
-            session->SendNotification("You lack the training to wield or wear that heirloom.");
+            if (session && !session->IsHeadless())
+                session->SendNotification("You lack the training to wield or wear that heirloom.");
             return;
         }
 
@@ -385,37 +409,46 @@ namespace
         Collection collection{};
         if (!LoadCollection(player, pool, collection))
         {
-            session->SendNotification("The armory records are unavailable.");
+            if (session && !session->IsHeadless())
+                session->SendNotification("The armory records are unavailable.");
             return;
         }
 
         bool unlocked = HasUnlocked(collection, family);
         Allowance allowance = GetAllowance(player, collection, pool);
         uint32 units = UnlockCost(pool, *offer);
-        bool charge = !unlocked && UsesVouchers();
+        bool requireVoucher = sHeirloomConfig.IsTokenRequirementEnabled(player);
+        bool charge = requireVoucher;
         uint32 voucher = HeirloomVoucher(pool);
-        if (!unlocked && (!allowance.milestone || allowance.remaining < units))
+        if (requireVoucher && !unlocked && (!allowance.milestone || allowance.remaining < units))
         {
-            session->SendNotification(units == 2
-                ? "You have not earned enough for a two-handed weapon."
-                : "You have no new choices to spend at this level.");
+            if (session && !session->IsHeadless())
+            {
+                session->SendNotification(units == 2
+                    ? "You have not earned enough for a two-handed weapon."
+                    : "You have no new choices to spend at this level.");
+            }
             return;
         }
         if (charge && !player->HasItemCount(voucher, units))
         {
-            if (units == 2)
-                session->SendNotification("Bring two Weaponmaster's Seals from your mailbox or bank.");
-            else if (pool == HeirloomPool::Accessories)
-                session->SendNotification("Bring a Curator's Token from your mailbox or bank.");
-            else
-                session->SendNotification("Bring the matching voucher from your mailbox or bank.");
+            if (session && !session->IsHeadless())
+            {
+                if (units == 2)
+                    session->SendNotification("Bring two Weaponmaster's Seals from your mailbox or bank.");
+                else if (pool == HeirloomPool::Accessories)
+                    session->SendNotification("Bring a Curator's Token from your mailbox or bank.");
+                else
+                    session->SendNotification("Bring the matching voucher from your mailbox or bank.");
+            }
             return;
         }
 
         bool owned = HeirloomMgr::HasOwnedFamily(player, family);
-        if (owned && unlocked)
+        if (owned)
         {
-            session->SendNotification("You already have a copy of that heirloom.");
+            if (session && !session->IsHeadless())
+                session->SendNotification("You already have a copy of that heirloom.");
             return;
         }
 
@@ -430,31 +463,28 @@ namespace
             }
         }
 
-        if (!unlocked)
+        if (!unlocked && allowance.milestone && session && session->GetAccountId())
         {
             size_t bracket = allowance.milestone - 1;
             BracketUsage const& usage = collection.brackets[bracket];
             uint32 shared = collection.perCharacter ? 0 : FindFreeSlot(usage.sharedSlots);
-            if (!CharacterDatabase.DirectPExecute(
-                "INSERT INTO mod_heirloom_account_collection "
+            CharacterDatabase.DirectPExecute(
+                "INSERT IGNORE INTO mod_heirloom_account_collection "
                 "(account_id, family, pool, milestone, earner_guid, unlock_slot, shared_slot, unlock_cost) "
                 "VALUES (%u, %u, %u, %u, %u, %u, NULLIF(%u, 0), %u)",
                 session->GetAccountId(), family, static_cast<uint32>(pool), HEIRLOOM_UNLOCK_BRACKETS[bracket].id,
-                player->GetObjectGuid().GetCounter(), FindFreeSlot(usage.characterSlots), shared, units))
-            {
-                session->SendNotification("The armory could not record the unlock. Please reopen the shop.");
-                return;
-            }
+                player->GetObjectGuid().GetCounter(), FindFreeSlot(usage.characterSlots), shared, units);
         }
 
         if (!owned)
         {
-            sWorld.SendUpdateSingleItem(offer->ItemId, session);
+            if (session && !session->IsHeadless())
+                sWorld.SendUpdateSingleItem(offer->ItemId, session);
             Item* item = player->StoreNewItem(destination, offer->ItemId, true);
             if (!item)
             {
-                session->SendNotification(unlocked ? "The heirloom could not be delivered. Please try again."
-                    : "The heirloom is in your collection. Claim a free copy when you have space.");
+                if (session && !session->IsHeadless())
+                    session->SendNotification("The heirloom could not be delivered. Please try again.");
             }
             else
                 player->SendNewItem(item, 1, true, false);
@@ -465,7 +495,8 @@ namespace
 
         // The stock panel rebuilds offers on open. Keep the current page open;
         // purchases always use the latest collection and voucher state on the server.
-        SendCurrency(player, "update");
+        if (session && !session->IsHeadless())
+            SendCurrency(player, "update");
     }
 
     class HeirloomCuratorScript : public CreatureScript
@@ -481,7 +512,115 @@ namespace
                     player->GetSession()->SendNotification("The heirloom armory is currently unavailable.");
                 return true;
             }
+
+            bool isBot = sScriptMgr.IsBotManaged(player) || (player->GetSession() && player->GetSession()->IsHeadless());
+            if (isBot)
+            {
+                player->PlayerTalkClass->ClearMenus();
+                bool weapons = IsWeaponShop(creature->GetEntry());
+                if (weapons)
+                {
+                    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "One-Handed Weapons & Shields (1 Seal)", 0, GOSSIP_CAT_WEAPONS_1H);
+                    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Two-Handed Weapons & Staves (2 Seals)", 0, GOSSIP_CAT_WEAPONS_2H);
+                    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Ranged Weapons & Off-Hands (1 Seal)", 0, GOSSIP_CAT_WEAPONS_RANGED);
+                }
+                else
+                {
+                    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Plate Armor (1 Writ)", 0, GOSSIP_CAT_ARMOR_PLATE);
+                    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Mail Armor (1 Writ)", 0, GOSSIP_CAT_ARMOR_MAIL);
+                    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Leather Armor (1 Writ)", 0, GOSSIP_CAT_ARMOR_LEATHER);
+                    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Cloth Armor (1 Writ)", 0, GOSSIP_CAT_ARMOR_CLOTH);
+                    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Cloaks (1 Writ)", 0, GOSSIP_CAT_ARMOR_CLOAKS);
+                    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Rings & Trinkets (1 Token)", 0, GOSSIP_CAT_ACCESSORIES);
+                }
+                player->PlayerTalkClass->SendGossipMenu(HEIRLOOM_MERCHANT_TEXT, creature->GetObjectGuid());
+                return true;
+            }
+
             OpenMerchant(player, creature);
+            return true;
+        }
+
+        bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action) override
+        {
+            if (action >= GOSSIP_BUY_FAMILY_BASE)
+            {
+                uint32 family = action - GOSSIP_BUY_FAMILY_BASE;
+                bool weapons = IsWeaponShop(creature->GetEntry());
+                Buy(player, weapons, family);
+                player->PlayerTalkClass->CloseGossip();
+                return true;
+            }
+
+            player->PlayerTalkClass->ClearMenus();
+            bool weapons = IsWeaponShop(creature->GetEntry());
+            std::vector<uint32> targets;
+
+            if (action == GOSSIP_CAT_WEAPONS_1H)
+            {
+                for (uint32 fam : WeaponFamilies)
+                {
+                    if (ItemPrototype const* proto = GetOffer(player, fam))
+                        if (proto->InventoryType != INVTYPE_2HWEAPON && proto->InventoryType != INVTYPE_RANGED && proto->InventoryType != INVTYPE_RANGEDRIGHT)
+                            targets.push_back(fam);
+                }
+            }
+            else if (action == GOSSIP_CAT_WEAPONS_2H)
+            {
+                for (uint32 fam : WeaponFamilies)
+                {
+                    if (ItemPrototype const* proto = GetOffer(player, fam))
+                        if (proto->InventoryType == INVTYPE_2HWEAPON)
+                            targets.push_back(fam);
+                }
+            }
+            else if (action == GOSSIP_CAT_WEAPONS_RANGED)
+            {
+                for (uint32 fam : WeaponFamilies)
+                {
+                    if (ItemPrototype const* proto = GetOffer(player, fam))
+                        if (proto->InventoryType == INVTYPE_RANGED || proto->InventoryType == INVTYPE_RANGEDRIGHT || proto->InventoryType == INVTYPE_THROWN || proto->InventoryType == INVTYPE_HOLDABLE)
+                            targets.push_back(fam);
+                }
+            }
+            else if (action >= GOSSIP_CAT_ARMOR_PLATE && action <= GOSSIP_CAT_ARMOR_CLOTH)
+            {
+                size_t matIdx = (action - GOSSIP_CAT_ARMOR_PLATE) / 10;
+                if (matIdx < ArmorGroups.size())
+                {
+                    for (uint32 first : ArmorGroups[matIdx])
+                        if (first)
+                            for (uint32 piece = 0; piece < 8; ++piece)
+                                targets.push_back(first + piece * 100);
+                }
+            }
+            else if (action == GOSSIP_CAT_ARMOR_CLOAKS)
+            {
+                for (uint32 cloak : CloakFamilies)
+                    targets.push_back(cloak);
+            }
+            else if (action == GOSSIP_CAT_ACCESSORIES)
+            {
+                for (uint32 acc : AccessoryFamilies)
+                    targets.push_back(acc);
+            }
+
+            for (uint32 fam : targets)
+            {
+                if (ItemPrototype const* proto = GetOffer(player, fam))
+                {
+                    if (player->CanUseItem(proto) == EQUIP_ERR_OK)
+                    {
+                        uint32 cost = UnlockCost(weapons ? HeirloomPool::Weapons : HeirloomPool::Armor, *proto);
+                        std::string label = proto->Name1;
+                        if (cost == 2)
+                            label += " (2 Seals)";
+                        player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, label.c_str(), 0, GOSSIP_BUY_FAMILY_BASE + fam);
+                    }
+                }
+            }
+
+            player->PlayerTalkClass->SendGossipMenu(HEIRLOOM_MERCHANT_TEXT, creature->GetObjectGuid());
             return true;
         }
     };

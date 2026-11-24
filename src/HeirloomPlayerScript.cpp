@@ -53,13 +53,15 @@ namespace
             : PlayerScript("mod-twow-heirloom_player",
                 { PLAYERHOOK_ON_LOGIN, PLAYERHOOK_ON_LOGOUT, PLAYERHOOK_ON_LEVEL_CHANGED,
                   PLAYERHOOK_ON_GIVE_EXP, PLAYERHOOK_ON_LOOT_ITEM,
-                  PLAYERHOOK_ON_UPDATE })
+                  PLAYERHOOK_ON_PLAYER_JUST_DIED, PLAYERHOOK_ON_UPDATE })
         {
         }
 
         void OnLogin(Player* player) override
         {
             sHeirloomMgr.AdaptAllPlayerHeirlooms(player, true);
+            if (sHeirloomConfig.IsDurabilityExempt(player))
+                sHeirloomMgr.RestoreEquippedDurability(player);
 
             auto state = GetState(player->GetGUIDLow());
             uint64 now = MaintenanceTimeMs();
@@ -85,7 +87,15 @@ namespace
         void OnLevelChanged(Player* player, uint8 oldLevel) override
         {
             sHeirloomMgr.AdaptAllPlayerHeirlooms(player);
+            if (sHeirloomConfig.IsDurabilityExempt(player))
+                sHeirloomMgr.RestoreEquippedDurability(player);
             HeirloomCuratorMail::Notify(player, oldLevel);
+        }
+
+        void OnPlayerJustDied(Player* player) override
+        {
+            if (sHeirloomConfig.IsEnabled() && sHeirloomConfig.IsDurabilityExempt(player))
+                sHeirloomMgr.RestoreEquippedDurability(player);
         }
 
         void OnGiveXP(Player* player, uint32& amount, Unit* victim) override
@@ -127,7 +137,7 @@ namespace
             if (enabled && scaling && (reconcile || resurrected || tierChanged || !state->enabled || !state->scaling))
                 sHeirloomMgr.AdaptAllPlayerHeirlooms(player);
 
-            if (enabled && sHeirloomConfig.IsDurabilityExemptEnabled() &&
+            if (enabled && sHeirloomConfig.IsDurabilityExempt(player) &&
                 now - state->lastDurability >= DurabilityCheckMs)
             {
                 state->lastDurability = now;

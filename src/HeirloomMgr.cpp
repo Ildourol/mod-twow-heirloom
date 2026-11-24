@@ -153,11 +153,16 @@ void HeirloomMgr::AdaptAllPlayerHeirlooms(Player* player, bool refreshTooltips)
         item->ApplyModFlag(ITEM_FIELD_FLAGS, ITEM_DYNFLAG_BOA, true);
         uint32 previousMax = item->GetUInt32Value(ITEM_FIELD_MAXDURABILITY);
         uint32 previousDurability = std::min(item->GetUInt32Value(ITEM_FIELD_DURABILITY), previousMax);
-        // Keep the remaining durability fraction across tiers, including intact and broken items.
-        // Round down without breaking a still-usable item.
+        // Keep the remaining durability fraction across tiers, or keep 100% if durability loss is exempt/off.
         uint32 durability = next->MaxDurability;
-        if (previousMax && next->MaxDurability)
+        if (sHeirloomConfig.IsDurabilityExempt(player))
+        {
+            durability = next->MaxDurability;
+        }
+        else if (previousMax && next->MaxDurability)
+        {
             durability = previousDurability ? std::max(1u, previousDurability * next->MaxDurability / previousMax) : 0u;
+        }
         item->SetUInt32Value(ITEM_FIELD_MAXDURABILITY, next->MaxDurability);
         item->SetUInt32Value(ITEM_FIELD_DURABILITY, durability);
         if (equipped)

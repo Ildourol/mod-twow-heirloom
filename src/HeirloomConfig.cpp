@@ -6,6 +6,8 @@
 #include "HeirloomConfig.h"
 #include "Config/Config.h"
 #include "Log.h"
+#include "Objects/Player.h"
+#include "ScriptMgr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -60,7 +62,16 @@ void HeirloomConfig::Load()
     m_chestXPPercent    = clampPercent(sConfig.GetFloatDefault("Heirloom.BonusXP.ChestPercent", 10.0f), 10.0f);
     m_ringXPPercent     = clampPercent(sConfig.GetFloatDefault("Heirloom.BonusXP.RingPercent", 5.0f), 5.0f);
 
-    m_durabilityExempt = sConfig.GetBoolDefault("Heirloom.Durability.Exempt", false);
+    // Durability loss settings: default is false (loss disabled / heirlooms stay at 100%)
+    // Check legacy Heirloom.Durability.Exempt for backward-compatibility (Exempt=1 means Loss=0)
+    bool legacyExempt = sConfig.GetBoolDefault("Heirloom.Durability.Exempt", true);
+    m_durabilityLossPlayer = sConfig.GetBoolDefault("Heirloom.Durability.Loss.Player", !legacyExempt);
+    m_durabilityLossBot    = sConfig.GetBoolDefault("Heirloom.Durability.Loss.Bot", false);
+
+    // Token requirement settings: default is true (tokens required for both players and bots)
+    m_tokensRequiredPlayer = sConfig.GetBoolDefault("Heirloom.Tokens.Required.Player", true);
+    m_tokensRequiredBot    = sConfig.GetBoolDefault("Heirloom.Tokens.Required.Bot", true);
+
     m_autoImport = sConfig.GetBoolDefault("Heirloom.Database.AutoImport", true);
     m_sqlPath = sConfig.GetStringDefault("Heirloom.Database.SqlPath", "");
     m_announceEnabled = sConfig.GetBoolDefault("Heirloom.Announce.Enable", true);
@@ -108,4 +119,32 @@ bool HeirloomConfig::IsHeirloomItemId(uint32 itemId) const
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     return m_explicitHeirloomIds.find(itemId) != m_explicitHeirloomIds.end();
+}
+
+bool HeirloomConfig::IsDurabilityLossEnabled(Player const* player) const
+{
+    if (!player)
+        return false;
+
+    bool isBot = false;
+    if (sScriptMgr.IsBotManaged(const_cast<Player*>(player)))
+        isBot = true;
+    else if (player->GetSession() && player->GetSession()->IsHeadless())
+        isBot = true;
+
+    return isBot ? m_durabilityLossBot.load() : m_durabilityLossPlayer.load();
+}
+
+bool HeirloomConfig::IsTokenRequirementEnabled(Player const* player) const
+{
+    if (!player)
+        return true;
+
+    bool isBot = false;
+    if (sScriptMgr.IsBotManaged(const_cast<Player*>(player)))
+        isBot = true;
+    else if (player->GetSession() && player->GetSession()->IsHeadless())
+        isBot = true;
+
+    return isBot ? m_tokensRequiredBot.load() : m_tokensRequiredPlayer.load();
 }

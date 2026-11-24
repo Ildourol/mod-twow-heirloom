@@ -12,6 +12,8 @@
 #include <string>
 #include <unordered_set>
 
+class Player;
+
 class HeirloomConfig
 {
 public:
@@ -33,8 +35,17 @@ public:
     [[nodiscard]] float GetChestBonusXPPercent() const { return m_chestXPPercent; }
     [[nodiscard]] float GetRingBonusXPPercent() const { return m_ringXPPercent; }
 
-    // Durability exemption toggle
-    [[nodiscard]] bool IsDurabilityExemptEnabled() const { return m_durabilityExempt; }
+    // Durability loss & exemption toggles
+    [[nodiscard]] bool IsDurabilityLossEnabled(Player const* player) const;
+    [[nodiscard]] bool IsDurabilityExempt(Player const* player) const { return !IsDurabilityLossEnabled(player); }
+    [[nodiscard]] bool IsDurabilityLossPlayerEnabled() const { return m_durabilityLossPlayer; }
+    [[nodiscard]] bool IsDurabilityLossBotEnabled() const { return m_durabilityLossBot; }
+    [[nodiscard]] bool IsDurabilityExemptEnabled() const { return !m_durabilityLossPlayer; }
+
+    // Token requirement toggles (Players and Bots)
+    [[nodiscard]] bool IsTokenRequirementEnabled(Player const* player) const;
+    [[nodiscard]] bool IsPlayerTokenRequirementEnabled() const { return m_tokensRequiredPlayer; }
+    [[nodiscard]] bool IsBotTokenRequirementEnabled() const { return m_tokensRequiredBot; }
 
     // Standalone Database Auto-Import
     [[nodiscard]] bool IsAutoImportEnabled() const { return m_autoImport; }
@@ -66,7 +77,10 @@ private:
     std::atomic<float> m_chestXPPercent{10.0f};
     std::atomic<float> m_ringXPPercent{5.0f};
 
-    std::atomic<bool> m_durabilityExempt{false};
+    std::atomic<bool> m_durabilityLossPlayer{false};
+    std::atomic<bool> m_durabilityLossBot{false};
+    std::atomic<bool> m_tokensRequiredPlayer{true};
+    std::atomic<bool> m_tokensRequiredBot{true};
     std::atomic<bool> m_autoImport{true};
     std::string m_sqlPath;
     std::atomic<bool> m_announceEnabled{false};

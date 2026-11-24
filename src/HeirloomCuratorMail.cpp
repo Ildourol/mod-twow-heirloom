@@ -131,7 +131,10 @@ void HeirloomCuratorMail::Notify(Player* player, uint32 previousLevel)
 {
     WorldSession* session = player->GetSession();
     uint32 level = player->GetLevel();
-    if (!session || session->IsHeadless() || !session->GetMasterPlayer() || !session->GetAccountId() ||
+    bool isBot = sScriptMgr.IsBotManaged(player) || session->IsHeadless();
+    if (!isBot && !session->GetMasterPlayer())
+        return;
+    if (!session->GetAccountId() ||
         !sHeirloomConfig.IsEnabled() || !sHeirloomConfig.IsCollectionEnabled() ||
         !sHeirloomConfig.IsCollectionMailEnabled() || !IsHeirloomCollectionReady() ||
         CharacterDatabase.InTransaction())
