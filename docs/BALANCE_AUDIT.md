@@ -26,7 +26,7 @@ Breastplate of Valor, a level-58 rare, has 657 armor and 49 primary stat points 
 
 ## Role-specific equip effects
 
-Guardian heavy armor, shields, and one-handed tank weapons spend part of their budget on Defense. Guardian leather and cloaks use Stamina, Agility, and armor. Vindicator armor and melee weapons use Attack Power. Physical ranged weapons use Agility and ranged Attack Power. Arcane cloth and caster arms use spell damage and healing, while Blessed gear uses healing or mana regeneration on selected bracers.
+Guardian heavy armor, shields, and one-handed tank weapons spend part of their budget on Defense. Guardian leather uses Stamina, Agility, and armor. Vindicator armor and melee weapons use Attack Power. Physical ranged weapons use Agility and ranged Attack Power. Arcane cloth and caster arms use spell damage and healing, while Blessed gear uses healing or mana regeneration on selected bracers.
 
 The new secondary equip line reallocates part of each eligible item's primary-stat budget into a stock passive rank. Each tier preserves its total primary-stat points. The 150 armor and weapon families with a secondary equip line use fixed ranks confirmed against the bundled server spell data and the stock 1.18.1.7979 client Spell.dbc. The added ranks progress monotonically by family. Rings and trinkets use their own existing budgets and effects. Base armor, block, damage, XP and appearances retain their audited values.
 

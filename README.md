@@ -44,7 +44,7 @@ Place the module under the Tortoise core's modules directory and install its con
 | World | [heirloom_world.sql](data/sql/world/heirloom_world.sql) |
 | Characters | [heirloom_characters.sql](data/sql/character/heirloom_characters.sql) |
 
-The World SQL contains all 9,720 heirloom templates, with 60 levels for each of 162 families. The Characters SQL creates an empty collection table on a fresh install. Re-importing preserves existing collection data.
+The World SQL contains all 9,600 heirloom templates, with 60 levels for each of 160 families. The Characters SQL creates an empty collection table on a fresh install. Re-importing preserves existing collection data.
 
 With `Heirloom.Database.AutoImport = 1`, the module installs missing data from the bundled SQL. When the fallback installs World data, it logs that one restart is needed to load the items and curators. `Heirloom.Database.SqlPath` points to the World SQL directory. The Characters SQL belongs in the sibling character directory.
 

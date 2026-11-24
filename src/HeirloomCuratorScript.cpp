@@ -42,10 +42,12 @@ namespace
     constexpr size_t ItemsPerPage = 10;
 
     constexpr uint32 WeaponFamilies[] = {
-        911100, 911300, 911600, 911700, 911900, 912000, 912200, 912300,
-        912400, 912500, 912600, 912700, 912800, 913100, 913400, 913700,
-        914000, 914300, 914600, 914700, 915200, 915300, 915400, 915600,
-        915700, 915900, 916000, 916100, 916200
+        911100, 911200, 911300, 911400, 911500, 911600, 911700, 911800, 911900,
+        912000, 912100, 912200, 912300, 912400, 912500, 912600, 912700, 912800,
+        912900, 913000, 913100, 913200, 913300, 913400, 913500, 913600, 913700,
+        913800, 913900, 914000, 914100, 914200, 914300, 914400, 914500, 914600,
+        914700, 914800, 914900, 915000, 915100, 915200, 915300, 915400, 915500,
+        915600, 915700, 915800, 915900, 916000, 916100, 916200
     };
     enum class ArmorMaterial { Plate, Mail, Leather, Cloth };
     enum class ArmorRole { Bulwark, Arms, Spellcraft = Arms, Renewal };
@@ -65,8 +67,6 @@ namespace
 #include "HeirloomAccessoryCatalog.inc"
 #undef HEIRLOOM_ACCESSORY
     };
-
-    constexpr uint32 CloakFamilies[] = { 909600, 909700, 909800 };
 
     template<class Visitor>
     void VisitStock(HeirloomPool pool, Visitor visit)
@@ -89,9 +89,6 @@ namespace
                 if (first)
                     for (uint32 piece = 0; piece < 8; ++piece)
                         visit(first + piece * 100);
-
-        for (uint32 cloak : CloakFamilies)
-            visit(cloak);
     }
 
     bool IsWeaponShop(uint32 entry)
@@ -377,8 +374,7 @@ namespace
         GOSSIP_CAT_ARMOR_MAIL = 50,
         GOSSIP_CAT_ARMOR_LEATHER = 60,
         GOSSIP_CAT_ARMOR_CLOTH = 70,
-        GOSSIP_CAT_ARMOR_CLOAKS = 80,
-        GOSSIP_CAT_ACCESSORIES = 90,
+        GOSSIP_CAT_ACCESSORIES = 80,
         GOSSIP_BUY_FAMILY_BASE = 1000000
     };
 
@@ -530,7 +526,6 @@ namespace
                     player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Mail Armor (1 Writ)", 0, GOSSIP_CAT_ARMOR_MAIL);
                     player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Leather Armor (1 Writ)", 0, GOSSIP_CAT_ARMOR_LEATHER);
                     player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Cloth Armor (1 Writ)", 0, GOSSIP_CAT_ARMOR_CLOTH);
-                    player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Cloaks (1 Writ)", 0, GOSSIP_CAT_ARMOR_CLOAKS);
                     player->PlayerTalkClass->GetGossipMenu().AddMenuItem(GOSSIP_ICON_VENDOR, "Rings & Trinkets (1 Token)", 0, GOSSIP_CAT_ACCESSORIES);
                 }
                 player->PlayerTalkClass->SendGossipMenu(HEIRLOOM_MERCHANT_TEXT, creature->GetObjectGuid());
@@ -593,11 +588,6 @@ namespace
                             for (uint32 piece = 0; piece < 8; ++piece)
                                 targets.push_back(first + piece * 100);
                 }
-            }
-            else if (action == GOSSIP_CAT_ARMOR_CLOAKS)
-            {
-                for (uint32 cloak : CloakFamilies)
-                    targets.push_back(cloak);
             }
             else if (action == GOSSIP_CAT_ACCESSORIES)
             {

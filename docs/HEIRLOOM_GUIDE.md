@@ -24,7 +24,7 @@ Check an in-game mailbox after reaching a bracket. The armor curator sends **Arm
 
 The curators use your current weapon and armor proficiencies. Plate is visible at all levels and requires plate proficiency to buy or equip. If a character has an unlocked item in the bank, move it from the bank to use it again. If you've destroyed an unlocked item, you can claim a replacement.
 
-Pick a slot where you expect long gaps between upgrades. Guardian heavy armor, shields, and one-handed tank weapons favor Stamina and Defense. Guardian leather and cloaks use Agility and armor. Vindicator armor and melee weapons favor physical attributes and Attack Power. Bows, guns, crossbows, and thrown weapons favor Agility and ranged Attack Power. Arcane gear favors Intellect and spell damage. Blessed gear favors healing, with mana regeneration on selected bracers. Each piece follows a rare-item benchmark for its slot, armor material, or weapon type. Chest pieces carry more stats than smaller slots. A caster staff can carry a larger spell bonus than a wand or off-hand.
+Pick a slot where you expect long gaps between upgrades. Guardian heavy armor, shields, and one-handed tank weapons favor Stamina and Defense. Guardian leather uses Agility and armor. Vindicator armor and melee weapons favor physical attributes and Attack Power. Bows, guns, crossbows, and thrown weapons favor Agility and ranged Attack Power. Arcane gear favors Intellect and spell damage. Blessed gear favors healing, with mana regeneration on selected bracers. Each piece follows a rare-item benchmark for its slot, armor material, or weapon type. Chest pieces carry more stats than smaller slots. A caster staff can carry a larger spell bonus than a wand or off-hand.
 
 ## Rings and trinkets
 
@@ -57,4 +57,4 @@ Qualifying shoulders and chests each grant 10% bonus XP by default. Each qualify
 
 ## Durability
 
-Heirloom armor, shields, and weapons with repairable counterparts take ordinary durability loss, including on applicable deaths. Level scaling preserves their remaining durability percentage. The heirloom tooltip displays durability even if the optional automatic repair setting is enabled. Rings, trinkets, cloaks, held caster items, and stackable thrown weapons follow their usual durability rules.
+Heirloom armor, shields, and weapons with repairable counterparts take ordinary durability loss, including on applicable deaths. Level scaling preserves their remaining durability percentage. The heirloom tooltip displays durability even if the optional automatic repair setting is enabled. Rings, trinkets, held caster items, and stackable thrown weapons follow their usual durability rules.

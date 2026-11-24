@@ -82,10 +82,6 @@ uint32 HeirloomMgr::GetFamily(uint32 entry)
 
 uint32 HeirloomMgr::GetCanonicalFamily(uint32 family)
 {
-    if (family >= 908800 && family <= 909500)
-        return family - 1600;
-    if (family == 914900 || family == 915500 || family == 915800)
-        return family - 200;
     return family;
 }
 
