@@ -1,7 +1,5 @@
 # Turtle WoW Heirlooms
 
-![Fantasy adventurers and equipment around a campfire](readme-cover.png)
-
 Earn armor, weapon, and accessory choices through leveling, then redeem them at curators near the Stormwind and Orgrimmar banks. New unlocks join an account-wide collection and can be claimed by eligible alts. Equipment scales within the configured level cap.
 
 ## Install
