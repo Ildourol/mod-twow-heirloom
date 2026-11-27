@@ -63,7 +63,12 @@ Heirloom.Collection.WeaponTokens.Level40 = 1
 Heirloom.Collection.WeaponTokens.Level50 = 1
 Heirloom.Collection.WeaponTokens.Level55 = 0
 
-# Each Curator's Token buys one ring or trinket.
+#
+# Heirloom.Collection.AccessoryTokens.Level10 / Level20 / Level30 / Level40 / Level50 / Level55
+#     Description: Curator's Tokens awarded at each bracket for the 16 accessories
+#                  (8 rings and 8 trinkets). Each Curator's Token buys one ring or trinket;
+#                  default 4 tokens by level 40 covers two rings and two trinkets.
+#
 Heirloom.Collection.AccessoryTokens.Level10 = 1
 Heirloom.Collection.AccessoryTokens.Level20 = 1
 Heirloom.Collection.AccessoryTokens.Level30 = 1

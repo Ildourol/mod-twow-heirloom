@@ -12,6 +12,12 @@ class Player;
 class Item;
 class Unit;
 
+struct HeirloomScanSummary
+{
+    bool hasAnyHeirloom = false;
+    bool hasEquippedHeirloom = false;
+};
+
 class HeirloomMgr
 {
 public:
@@ -25,7 +31,7 @@ public:
 
     void RestoreEquippedDurability(Player* player);
     void HandlePlayerGiveXP(Player* player, uint32& amount, Unit* victim);
-    void AdaptAllPlayerHeirlooms(Player* player, bool refreshTooltips = false);
+    HeirloomScanSummary AdaptAllPlayerHeirlooms(Player* player, bool refreshTooltips = false);
 
 private:
     HeirloomMgr() = default;

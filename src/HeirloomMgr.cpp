@@ -4,6 +4,7 @@
  */
 
 #include "HeirloomMgr.h"
+#include "HeirloomCatalog.h"
 #include "HeirloomConfig.h"
 #include "Objects/Player.h"
 #include "Objects/Item.h"
@@ -19,11 +20,6 @@
 
 namespace
 {
-    bool IsCatalogEntry(uint32 entry)
-    {
-        return entry >= 900001 && entry <= 916260 && entry % 100 >= 1 && entry % 100 <= 60;
-    }
-
     template<class Visitor>
     bool VisitOwnedItems(Player* player, Visitor visit)
     {
@@ -77,12 +73,12 @@ uint8 HeirloomMgr::GetScaledLevel(Player const* player)
 
 uint32 HeirloomMgr::GetFamily(uint32 entry)
 {
-    return IsCatalogEntry(entry) ? entry - entry % 100 : 0;
+    return HeirloomCatalog::IsCatalogEntry(entry) ? entry - entry % 100 : 0;
 }
 
 uint32 HeirloomMgr::GetCanonicalFamily(uint32 family)
 {
-    return family;
+    return HeirloomCatalog::IsCatalogFamily(family) ? family : 0;
 }
 
 bool HeirloomMgr::HasOwnedFamily(Player* player, uint32 family)
@@ -102,30 +98,39 @@ void HeirloomMgr::RestoreEquippedDurability(Player* player)
                 EnsureHeirloomDurability(player, item, slot);
 }
 
-void HeirloomMgr::AdaptAllPlayerHeirlooms(Player* player, bool refreshTooltips)
+HeirloomScanSummary HeirloomMgr::AdaptAllPlayerHeirlooms(Player* player, bool refreshTooltips)
 {
-    if (!sHeirloomConfig.IsEnabled())
-        return;
+    HeirloomScanSummary summary;
+    if (!player || !sHeirloomConfig.IsEnabled())
+        return summary;
 
     bool scaling = sHeirloomConfig.IsScalingEnabled();
-    if (!scaling && !refreshTooltips)
-        return;
-
     uint8 level = GetScaledLevel(player);
     WorldSession* session = player->GetSession();
     bool sendTooltips = session && !session->IsHeadless();
     TradeData* trade = player->GetTradeData();
     Item* enchantTarget = trade ? trade->GetItem(TRADE_SLOT_NONTRADED) : nullptr;
+
     VisitOwnedItems(player, [&](uint8 bag, uint8 slot, Item* item)
     {
         uint32 entry = item->GetEntry();
         uint32 family = GetFamily(entry);
-        if (!family)
+        bool equipped = bag == INVENTORY_SLOT_BAG_0 && slot < EQUIPMENT_SLOT_END;
+        ItemPrototype const* proto = item->GetProto();
+        bool isHeirloom = (family != 0) || (proto && (proto->Bonding == HEIRLOOM_BONDING_ACCOUNT ||
+                                                      sHeirloomConfig.IsHeirloomItemId(proto->ItemId)));
+        if (isHeirloom)
+        {
+            summary.hasAnyHeirloom = true;
+            if (equipped)
+                summary.hasEquippedHeirloom = true;
+        }
+
+        if (!family || (!scaling && !refreshTooltips))
             return false;
 
         // Scale within the appearance family used by the item instance.
         uint32 target = family + level;
-        bool equipped = bag == INVENTORY_SLOT_BAG_0 && slot < EQUIPMENT_SLOT_END;
         ItemPrototype const* next = scaling && entry != target ? sObjectMgr.GetItemPrototype(target) : nullptr;
         if (!next || item->IsInTrade() || item == enchantTarget || (equipped && !player->IsAlive()))
         {
@@ -170,6 +175,8 @@ void HeirloomMgr::AdaptAllPlayerHeirlooms(Player* player, bool refreshTooltips)
         item->SetState(ITEM_CHANGED, player);
         return false;
     });
+
+    return summary;
 }
 
 void HeirloomMgr::EnsureHeirloomDurability(Player* player, Item* item, uint8 slot)
@@ -188,9 +195,9 @@ void HeirloomMgr::EnsureHeirloomDurability(Player* player, Item* item, uint8 slo
                 item->GetEntry(), slot, curDur, maxDur, player->GetName());
         }
 
-        // FINDING-04: If item was broken (0 durability), calling DurabilityRepair restores
+        // If item was broken (0 durability), calling DurabilityRepair restores
         // core base item stats (_ApplyItemMods) which were stripped by DurabilityPointsLoss.
-        // Core Player::DurabilityRepair (Player.cpp:6276) expects a packed pos: (bag << 8) | slot.
+        // Core Player::DurabilityRepair expects a packed pos: (bag << 8) | slot.
         // For equipped items, bag is INVENTORY_SLOT_BAG_0 (255).
         if (curDur == 0)
         {
@@ -234,7 +241,7 @@ float HeirloomMgr::CalculatePlayerBonusXPPercent(Player* player) const
 
 void HeirloomMgr::HandlePlayerGiveXP(Player* player, uint32& amount, Unit* /*victim*/)
 {
-    // FINDING-06: Strict numeric safety and preservation of base award against core 100k cap
+    // Strict numeric safety and preservation of base award against core 100k cap.
     if (!player || amount == 0 || amount >= CORE_MAX_GIVEXP_LIMIT ||
         !sHeirloomConfig.IsEnabled() || !sHeirloomConfig.IsBonusXPEnabled())
         return;
@@ -247,7 +254,7 @@ void HeirloomMgr::HandlePlayerGiveXP(Player* player, uint32& amount, Unit* /*vic
     double mult = static_cast<double>(bonusPercent) / 100.0;
     uint64 calculatedBonus = static_cast<uint64>(std::round(static_cast<double>(safeAmount) * mult));
 
-    // Player::GiveXP (Player.cpp:3648) drops all XP if award > 100000.
+    // Player::GiveXP drops all XP if award > 100000.
     // Clamp bonus so total amount strictly never reaches or exceeds 100000,
     // preserving the player's legitimate base experience award.
     uint32 maxAllowedBonus = (CORE_MAX_GIVEXP_LIMIT > amount) ? (CORE_MAX_GIVEXP_LIMIT - amount - 1) : 0;

@@ -30,3 +30,10 @@ t/
 test_*.py
 test_*.cpp
 test_*.ps1
+.agents/
+.orchestration/
+test_*
+docs/
+build/
+__pycache__/
+*.pyc

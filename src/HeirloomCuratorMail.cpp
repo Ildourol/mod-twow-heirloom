@@ -78,14 +78,14 @@ namespace
             text << count << (count == 1 ? " Weaponmaster's Seal is" : " Weaponmaster's Seals are") << " enclosed. "
                  << (horde ? "Bring your seals to me outside the bank in the Valley of Strength."
                            : "Bring your seals to me at Stormwind Bank in the Trade District.")
-                 << " A two-handed weapon takes two seals. Other arms and off-hands take one. Keep any extra seals for your next visit.";
+                 << " A two-handed weapon takes two seals. Other arms, shields, and off-hands take one. Keep any extra seals for your next visit.";
         }
         else
         {
             text << count << (count == 1 ? " Armorer's Writ is" : " Armorer's Writs are") << " enclosed. "
                  << (horde ? "Bring them to me outside the bank in the Valley of Strength."
                            : "Bring them to me at Stormwind Bank in the Trade District.")
-                 << " Choose from the plate racks once you are trained to wear plate.";
+                 << " Choose any armor your training allows, including plate once you are trained to wear it.";
         }
         text << "\n\nOnce a piece is entered in your collection, your other characters may request a copy they can use."
              << (horde ? "\n\nStrength and honor,\n" : "\n\nLight keep you,\n")
@@ -129,24 +129,45 @@ namespace
 
 void HeirloomCuratorMail::Notify(Player* player, uint32 previousLevel)
 {
+    if (!player)
+        return;
+
     WorldSession* session = player->GetSession();
+    if (!session)
+        return;
+
     uint32 level = player->GetLevel();
-    bool isBot = sScriptMgr.IsBotManaged(player) || session->IsHeadless();
+    bool isBot = HeirloomConfig::IsBotPlayer(player);
     if (!isBot && !session->GetMasterPlayer())
         return;
     if (!session->GetAccountId() ||
         !sHeirloomConfig.IsEnabled() || !sHeirloomConfig.IsCollectionEnabled() ||
-        !sHeirloomConfig.IsCollectionMailEnabled() || !IsHeirloomCollectionReady() ||
-        CharacterDatabase.InTransaction())
+        !sHeirloomConfig.IsCollectionMailEnabled() || !sHeirloomConfig.IsTokenRequirementEnabled(player) ||
+        !IsHeirloomCollectionReady() || CharacterDatabase.InTransaction())
         return;
 
     if (player->GetTeam() != ALLIANCE && player->GetTeam() != HORDE)
         return;
-    if (std::none_of(HEIRLOOM_UNLOCK_BRACKETS.begin(), HEIRLOOM_UNLOCK_BRACKETS.end(),
-        [level, previousLevel](HeirloomUnlockBracket const& bracket)
+
+    bool anyConfiguredBracket = false;
+    for (size_t i = 0; i < HEIRLOOM_UNLOCK_BRACKETS.size(); ++i)
+    {
+        uint32 bracketLevel = HEIRLOOM_UNLOCK_BRACKETS[i].level;
+        if (previousLevel < bracketLevel && bracketLevel <= level)
         {
-            return previousLevel < bracket.level && bracket.level <= level;
-        }))
+            for (HeirloomPool pool : HEIRLOOM_POOLS)
+            {
+                if (sHeirloomConfig.GetUnlockLimits(pool)[i] > 0)
+                {
+                    anyConfiguredBracket = true;
+                    break;
+                }
+            }
+            if (anyConfiguredBracket)
+                break;
+        }
+    }
+    if (!anyConfiguredBracket)
         return;
 
     std::lock_guard<std::mutex> lock(VoucherMailMutex);

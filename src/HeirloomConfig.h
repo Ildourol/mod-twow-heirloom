@@ -35,12 +35,14 @@ public:
     [[nodiscard]] float GetChestBonusXPPercent() const { return m_chestXPPercent; }
     [[nodiscard]] float GetRingBonusXPPercent() const { return m_ringXPPercent; }
 
+    // Bot & player classification helper
+    [[nodiscard]] static bool IsBotPlayer(Player const* player);
+
     // Durability loss & exemption toggles
     [[nodiscard]] bool IsDurabilityLossEnabled(Player const* player) const;
     [[nodiscard]] bool IsDurabilityExempt(Player const* player) const { return !IsDurabilityLossEnabled(player); }
     [[nodiscard]] bool IsDurabilityLossPlayerEnabled() const { return m_durabilityLossPlayer; }
     [[nodiscard]] bool IsDurabilityLossBotEnabled() const { return m_durabilityLossBot; }
-    [[nodiscard]] bool IsDurabilityExemptEnabled() const { return !m_durabilityLossPlayer; }
 
     // Token requirement toggles (Players and Bots)
     [[nodiscard]] bool IsTokenRequirementEnabled(Player const* player) const;
@@ -51,9 +53,10 @@ public:
     [[nodiscard]] bool IsAutoImportEnabled() const { return m_autoImport; }
     [[nodiscard]] std::string GetSqlPath() const;
 
-    // Logging & Diagnostics
+    // Logging, Diagnostics & Reload Generation
     [[nodiscard]] bool IsAnnounceEnabled() const { return m_announceEnabled; }
     [[nodiscard]] bool IsDebugEnabled() const { return m_debugEnabled; }
+    [[nodiscard]] uint32 GetGeneration() const { return m_generation.load(std::memory_order_acquire); }
 
     // Item ID matching
     [[nodiscard]] bool IsHeirloomItemId(uint32 itemId) const;
@@ -83,8 +86,9 @@ private:
     std::atomic<bool> m_tokensRequiredBot{true};
     std::atomic<bool> m_autoImport{true};
     std::string m_sqlPath;
-    std::atomic<bool> m_announceEnabled{false};
+    std::atomic<bool> m_announceEnabled{true};
     std::atomic<bool> m_debugEnabled{false};
+    std::atomic<uint32> m_generation{0};
 
     std::unordered_set<uint32> m_explicitHeirloomIds;
 };
