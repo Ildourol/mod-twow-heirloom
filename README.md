@@ -48,7 +48,7 @@ The World SQL contains all 9,600 heirloom templates, with 60 levels for each of 
 
 With `Heirloom.Database.AutoImport = 1`, the module installs missing data from the bundled SQL. When the fallback installs World data, it logs that one restart is needed to load the items and curators. `Heirloom.Database.SqlPath` points to the World SQL directory. The Characters SQL belongs in the sibling character directory.
 
-For existing installs that skip the core SQL updater, apply [heirloom_world_ranged_weapons.sql](data/sql/world/heirloom_world_ranged_weapons.sql) to the World database and restart the server.
+Existing World databases require a migration to pick up the balance changes, because the bundled installer uses `INSERT IGNORE`. See the [balance audit](docs/BALANCE_AUDIT.md) for the revised item stats and weapon speeds.
 
 The shops use the built-in `TW_Merchant` interface in client 1.18.1.7979 and the server's addon-message channel.
 
